@@ -125,7 +125,7 @@ ifdef USE_SPARKLE
 	rm -rf $(bundle_name)/Contents/Frameworks/Sparkle.framework
 	cp -R $(SPARKLEPATH)/Sparkle.framework $(bundle_name)/Contents/Frameworks/
 endif
-ifdef MACOSX_USE_LEGACY_ICONS
+ifdef MACOSX_LEOPARD_OR_BELOW
 	cp $(srcdir)/icons/scummvm_legacy.icns $(bundle_name)/Contents/Resources/scummvm.icns
 else
 	cp $(srcdir)/icons/scummvm.icns $(bundle_name)/Contents/Resources/scummvm.icns
@@ -167,7 +167,9 @@ ifdef USE_DOCKTILEPLUGIN
 	mkdir -p $(bundle_name)/Contents/PlugIns
 	cp -r scummvm.docktileplugin $(bundle_name)/Contents/PlugIns/
 endif
+ifndef MACOSX_LEOPARD_OR_BELOW
 	codesign -s - --deep --force $(bundle_name)
+endif
 
 ifdef USE_DOCKTILEPLUGIN
 bundle: scummvm-static scummvm.docktileplugin bundle-pack
@@ -515,7 +517,9 @@ osxsnap: bundle
 	cp $(DIST_FILES_DOCS_se) ./ScummVM-snapshot/doc/se/
 	$(XCODETOOLSPATH)/SetFile -t ttro -c ttxt ./ScummVM-snapshot/doc/QuickStart
 	$(XCODETOOLSPATH)/SetFile -t ttro -c ttxt ./ScummVM-snapshot/doc/*/*
+ifndef MACOSX_LEOPARD_OR_BELOW
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/*/*
+endif
 	$(XCODETOOLSPATH)/CpMac -r $(bundle_name) ./ScummVM-snapshot/
 	cp $(srcdir)/dists/macosx/DS_Store ./ScummVM-snapshot/.DS_Store
 	cp $(srcdir)/dists/macosx/background.jpg ./ScummVM-snapshot/background.jpg
