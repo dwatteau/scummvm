@@ -717,6 +717,19 @@ void ScummEngine_v6::o6_jump() {
 			_scummVars[202] = 35;
 	}
 
+	// WORKAROUND: while Hoagie holds the kite, every verb action different
+	// from the ones solving the puzzle will make it fail, i.e. Hoagie lets
+	// the kite fall down. This prevents two original lines from being
+	// triggered if you examine the kite or its pocket, and they're quite
+	// helpful to understand the puzzle...
+	//
+	// FIXME: problem is that Hoagie switches to a temporary costume when he
+	// holds the kite, and this costume doesn't have any lip sync animation.
+	if (_game.id == GID_TENTACLE && _currentRoom == 9 && vm.slot[_currentScript].number == 205 && offset == 3 &&
+		(_scriptPointer - _scriptOrgPointer) == 0xA0BC && _enableEnhancements) {
+		offset -= 3; // XXX: is this ok?
+	}
+
 	// WORKAROUND bug #4464: Talking to the guard at the bigfoot party, after
 	// he's let you inside, will cause the game to hang, if you end the conversation.
 	// This is a script bug, due to a missing jump in one segment of the script.
