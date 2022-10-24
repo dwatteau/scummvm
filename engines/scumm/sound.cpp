@@ -548,7 +548,7 @@ void Sound::playSound(int soundID) {
 		// offset 22-23: ? often identical to the rate divisior? (but not in sound 8, which loops)
 		// offset 24, byte (?): volume
 		// offset 25: ? same as volume -- maybe left vs. right channel?
-		// offset 26: ?  if != 0: stop current sound?
+		// offset 26: ?  if == 0: stop current sound?
 		// offset 27: ?  loopcount? 0xff == -1 for infinite?
 
 		size = READ_BE_UINT16(ptr + 12);
@@ -573,6 +573,13 @@ void Sound::playSound(int soundID) {
 		} else {
 			stream = plainStream;
 		}
+
+		// This is required for the boxing bell (in the first playable room) to
+		// ring 3 times in a row, as in the original (bug #13887).
+		// TODO: confirm with proper analysis whether this is really how the
+		// original interpreter handled this.
+		if (!ptr[26])
+			_mixer->stopID(soundID);
 
 		_mixer->playStream(Audio::Mixer::kSFXSoundType, nullptr, stream, soundID, vol, 0);
 	}
