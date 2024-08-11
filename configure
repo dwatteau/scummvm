@@ -2238,8 +2238,8 @@ echocheck "compiler version"
 
 # Some compilers pretend to be gcc to ease compatibility with
 # common Linux etc. programs. We first check for some of these here.
-have_gcc=no
-cc_check_define __GNUC__ && have_gcc=yes
+have_gcc_compatible=no
+cc_check_define __GNUC__ && have_gcc_compatible=yes
 have_icc=no
 cc_check_define __INTEL_COMPILER && have_icc=yes
 have_clang=no
@@ -2253,18 +2253,18 @@ if test "$have_icc" = yes; then
 	# detection work correctly.
 	append_var CXXFLAGS "-diag-error 10006,10148"
 
-	# ICC doesn't accept all gcc options, so we disable have_gcc, even if
+	# ICC doesn't accept all gcc options, so we disable have_gcc_compatible, even if
 	# ICC does have the gcc-compatibility defines.
-	have_gcc=no
+	have_gcc_compatible=no
 fi
 
 if test "$have_clang" = yes; then
 	add_line_to_config_mk 'HAVE_CLANG = 1'
 
-	# clang does accept all gcc options we use, so we keep have_gcc
+	# clang does accept all gcc options we use, so we keep have_gcc_compatible
 fi
 
-if test "$have_gcc" = yes; then
+if test "$have_gcc_compatible" = yes; then
 	add_line_to_config_mk 'HAVE_GCC = 1'
 	_cxx_major=`gcc_get_define __GNUC__`
 	_cxx_minor=`gcc_get_define __GNUC_MINOR__`
@@ -2291,6 +2291,15 @@ if test "$have_gcc" = yes; then
 		else
 			append_var CXXFLAGS "-Wno-missing-field-initializers"
 		fi
+
+		# Many false positives before GCC 4.8, e.g. with templates
+		if test $_cxx_major -eq 4 && test $_cxx_minor -le 7; then
+			append_var CXXFLAGS "-Wno-type-limits"
+			append_var CXXFLAGS "-Wno-uninitialized"
+			append_var CXXFLAGS "-Wno-maybe-uninitialized"
+			append_var CXXFLAGS "-Wno-array-bounds"
+		fi
+
 	fi
 elif test "$have_icc" = yes; then
 	cxx_version="`( $CXX -dumpversion ) 2>/dev/null`"
@@ -2333,7 +2342,7 @@ fi
 # By default compile with strict C++
 std_variant=c++
 pedantic=no
-if test "$have_gcc" = yes ; then
+if test "$have_gcc_compatible" = yes ; then
 	# By default, we add -pedantic to the CXXFLAGS to catch some potentially
 	# non-portable constructs, like use of GNU extensions.
 	# However, some platforms use GNU extensions in system header files, so
@@ -2352,6 +2361,14 @@ if test "$have_gcc" = yes ; then
 		;;
 	openbsd*)
 		pedantic=no
+		;;
+	riscos)
+		# -Wformat complains about '%z' and so on. Don't know if it's related to
+		# the older compiler not being completely C+11-aware, or something else.
+		if test "$have_gcc_compatible" = yes && test $_cxx_major -eq 4 && test $_cxx_minor -le 7; then
+			std_variant=gnu++
+			pedantic=no
+		fi
 		;;
 	*)
 		;;
@@ -4727,10 +4744,17 @@ fi
 # Check whether to enable optimizations
 #
 if test "$_optimizations" = yes ; then
-	# Enable optimizations. This also
-	# makes it possible to use -Wuninitialized, so let's do that.
+	# Enable optimizations
 	append_var CXXFLAGS "$_optimization_level"
-	append_var CXXFLAGS "-Wuninitialized"
+
+	# Optimizations make it possible to use -Wuninitialized, so let's do that
+	# (but only when the compiler has a reliable -Wuninitialized, see the
+	# other _cxx_major/_cxx_minor checks above)
+	if test "$have_gcc_compatible" = yes && test $_cxx_major -eq 4 && test $_cxx_minor -le 7; then
+		: nothing
+	else
+		append_var CXXFLAGS "-Wuninitialized"
+	fi
 fi
 
 #
@@ -7049,12 +7073,14 @@ case $_host_cpu in
 		;;
 esac
 
-if test "$have_gcc" = yes; then
-	# Need 4.9 for pragma target
+# XXX: clang?
+if test "$have_gcc_compatible" = yes; then
+	echo "ici1: cxx_major=$_cxx_major, cxx_minor=$_cxx_minor"
+	#exit 1
+	# Need 4.9 for AVX2 pragma target
 	if (test $_cxx_major -lt 4) || (test $_cxx_major -eq 4 && test $_cxx_minor -lt 9); then
-		_ext_sse2=no
-		_ext_avx2=no
 		_ext_neon=no
+		_ext_avx2=no
 	fi
 fi
 
