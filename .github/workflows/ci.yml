@@ -160,11 +160,17 @@ jobs:
           - platform: ubuntu-latest
             sdlConfig: sdl2-config
             cxx: ccache g++
+            cxxFlags: ''
+            cppFlags: ''
             aptPackages: 'liba52-dev libcurl4-openssl-dev libfaad-dev libflac-dev libfluidsynth-dev libfreetype6-dev libfribidi-dev libgif-dev libgtk-3-dev libjpeg-turbo8-dev libmad0-dev libmikmod-dev libmpeg2-4-dev libogg-dev libpng-dev libsdl2-dev libsdl2-net-dev libsndio-dev libspeechd-dev libtheora-dev libunity-dev libvorbis-dev libvpx-dev zlib1g-dev'
             configFlags: --enable-discord --with-discord-prefix=/usr/local
+          # This one is meant to test more unusual configurations, such as: older C++11
+          # compiler, SDL1.2, 'char' being unsigned by default, and so on
           - platform: ubuntu-20.04
             sdlConfig: sdl-config
             cxx: ccache g++-4.8
+            cxxFlags: '-funsigned-char -Werror=type-limits -Werror=sign-compare -Wno-unused-variable'
+            cppFlags: '-DNDEBUG'
             aptPackages: 'g++-4.8 liba52-dev libcurl4-openssl-dev libfaad-dev libflac-dev libfluidsynth-dev libfreetype6-dev libfribidi-dev libgif-dev libgtk-3-dev libjpeg-turbo8-dev libmad0-dev libmikmod-dev libmpeg2-4-dev libogg-dev libpng-dev libsdl-net1.2-dev libsdl1.2-dev libsndio-dev libspeechd-dev libtheora-dev libunity-dev libvorbis-dev libvpx-dev zlib1g-dev'
             configFlags: --enable-discord --with-discord-prefix=/usr/local
     env:
@@ -198,7 +204,7 @@ jobs:
           max-size: 1G
       - name: Call configure
         run: |
-          CXX='${{ matrix.cxx }}' ./configure --enable-all-engines ${{ matrix.configFlags }}
+          CXX='${{ matrix.cxx }}' CPPFLAGS='${{ matrix.cppFlags }}' CXXFLAGS='${{ matrix.cxxFlags }}' ./configure --enable-all-engines ${{ matrix.configFlags }}
       - name: Build scummvm
         run: |
           make -j2
