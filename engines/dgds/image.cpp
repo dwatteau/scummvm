@@ -351,14 +351,15 @@ void Image::loadBitmap4(Graphics::ManagedSurface *surf, uint32 toffset, Common::
 
 	stream->skip(toffset >> 1);
 
+	uint size = tw * th;
 	if (highByte) {
-		for (uint i = 0; i < tw * th; i += 2) {
+		for (uint i = 0; i < size; i += 2) {
 			byte val = stream->readByte();
 			data[i + 0] |= val & 0xF0;
 			data[i + 1] |= (val & 0x0F) << 4;
 		}
 	} else {
-		for (uint i = 0; i < tw * th; i += 2) {
+		for (uint i = 0; i < size; i += 2) {
 			byte val = stream->readByte();
 			data[i + 0] |= (val & 0xF0) >> 4;
 			data[i + 1] |= val & 0x0F;
