@@ -397,7 +397,7 @@ bool BootScriptParser::readToken(Common::String &outToken) {
 		}
 
 		// Ignore whitespace
-		if (firstChar >= 0 && firstChar <= 32)
+		if (static_cast<unsigned char>(firstChar) <= 32)
 			continue;
 
 		if (isDigit(firstChar))
