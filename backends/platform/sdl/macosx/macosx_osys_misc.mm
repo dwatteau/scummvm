@@ -35,6 +35,7 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSPathUtilities.h>
 #include <Foundation/NSUserDefaults.h>
+#include <AppKit/NSAlert.h>
 #include <AppKit/NSPasteboard.h>
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
@@ -173,4 +174,18 @@ bool OSystem_MacOSX::setTextInClipboard(const Common::U32String &text) {
 	bool status =  [pb setString:nsstring forType:NSPasteboardTypeString];
 	[nsstring release];
 	return status;
+}
+
+// XXX: proper de-allocation, error() interaction and such is untested
+void OSystem_MacOSX::showFatalBppErrorUI() {
+	NSAlert *alert = [[NSAlert alloc] init];
+	// XXX: NSCriticalAlertStyle deprecated in 10.12
+	// TODO: use NSAlertStyleCritical and add compat between the two symbols
+	[alert setAlertStyle:NSCriticalAlertStyle];
+	// TODO: L10N and such?
+	[alert setMessageText:@"Color Depth Error"];
+	[alert setInformativeText:@"This application requires millions of colors (32-bit or higher color depth)."];
+	[alert addButtonWithTitle:@"OK"];
+	[alert runModal];
+	[alert release];
 }

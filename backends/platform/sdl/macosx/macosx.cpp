@@ -67,6 +67,12 @@ OSystem_MacOSX::~OSystem_MacOSX() {
 }
 
 void OSystem_MacOSX::init() {
+	int bpp = getColorDepthMacOSX();
+	if (getColorDepthMacOSX() < 32) {
+		showFatalBppErrorUI();
+		error("Monitor bit-depth is too low: %d bpp", bpp);
+	}
+
 	initSDL();
 	_window = new SdlWindow_MacOSX();
 

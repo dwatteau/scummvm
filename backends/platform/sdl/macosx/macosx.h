@@ -61,6 +61,9 @@ protected:
 	// Override createAudioCDManager() to get our Mac-specific
 	// version.
 	AudioCDManager *createAudioCDManager() override;
+
+private:
+	void showFatalBppErrorUI();
 };
 
 #endif

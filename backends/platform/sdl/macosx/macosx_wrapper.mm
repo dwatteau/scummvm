@@ -31,6 +31,10 @@
 #include <AvailabilityMacros.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFBundle.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFNumber.h>
+
+#include <ApplicationServices/ApplicationServices.h>	// for CGDisplay*()
 
 Common::String getDesktopPathMacOSX() {
 	// The recommended method is to use NSFileManager.
@@ -81,3 +85,29 @@ Common::String getMacBundleName() {
 		return Common::String("ScummVM");
 	return Common::String([appName UTF8String]);
 }
+
+// TODO: modern OSX probably doesn't like this. Look at what SDL does
+int getColorDepthMacOSX() {
+	CFDictionaryRef mode = CGDisplayCurrentMode(kCGDirectMainDisplay);
+	SInt32 bpp;
+
+	CFNumberGetValue((CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayBitsPerPixel),
+		kCFNumberSInt32Type, &bpp);
+
+	return (int)bpp;
+}
+
+// XXX: First version
+#if 0
+int getColorDepthMacOSX() {
+	CGDirectDisplayID display = CGMainDisplayID();
+	CFDictionaryRef mode = CGDisplayCurrentMode(display);
+	CFNumberRef bppRef;
+	SInt32 bpp;
+
+	bppRef = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayBitsPerPixel);
+	CFNumberGetValue(bppRef, kCFNumberSInt32Type, &bpp);
+
+	return (int)bpp;
+}
+#endif

@@ -29,5 +29,6 @@ Common::String getDocumentsPathMacOSX();
 Common::String getResourceAppBundlePathMacOSX();
 Common::String getAppSupportPathMacOSX();
 Common::String getMacBundleName();
+int getColorDepthMacOSX();
 
 #endif
