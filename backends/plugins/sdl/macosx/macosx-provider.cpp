@@ -29,9 +29,11 @@
 #include "common/fs.h"
 
 void MacOSXPluginProvider::addCustomDirectories(Common::FSList &dirs) const {
-	Common::Path bundlePath(getResourceAppBundlePathMacOSX(), Common::Path::kNativeSeparator);
-	if (!bundlePath.empty())
-		dirs.push_back(Common::FSNode(bundlePath));
+	Common::Path pluginPath(getPluginAppBundlePathMacOSX(), Common::Path::kNativeSeparator);
+	if (!pluginPath.empty()) {
+		pluginPath.joinInPlace("engines");
+		dirs.push_back(Common::FSNode(pluginPath));
+	}
 }
 
 #endif // defined(DYNAMIC_MODULES) && defined(SDL_BACKEND) && defined(MACOSX)

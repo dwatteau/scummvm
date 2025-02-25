@@ -27,6 +27,7 @@
 Common::String getDesktopPathMacOSX();
 Common::String getDocumentsPathMacOSX();
 Common::String getResourceAppBundlePathMacOSX();
+Common::String getPluginAppBundlePathMacOSX();
 Common::String getAppSupportPathMacOSX();
 Common::String getMacBundleName();
 

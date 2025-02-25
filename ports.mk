@@ -198,7 +198,9 @@ endif
 	cp $(bundle_name)/Contents/Resources/CatharonLicense.txt $(bundle_name)/Contents/Resources/CatharonLicense-txt
 
 ifdef DYNAMIC_MODULES
-	cp $(PLUGINS) $(bundle_name)/Contents/Resources/
+	mkdir -p $(bundle_name)/Contents/PlugIns/engines
+	cp $(PLUGINS) $(bundle_name)/Contents/PlugIns/engines/
+	chmod 644 $(bundle_name)/Contents/PlugIns/engines/*
 endif
 	chmod 644 $(bundle_name)/Contents/Resources/*
 ifneq ($(DIST_FILES_SHADERS),)
