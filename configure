@@ -4774,17 +4774,20 @@ EOF
 			echo yes
 			append_var DEFINES "-DHAS_FSEEKO_OFFT_64"
 		else
-			# Otherwise, when not cross-compiling, try with LFS_CFLAGS
+			# Otherwise, when not cross-compiling, see if LFS is available through getconf
 			if test -z "$_host"; then
-				TMPFLAGS=`getconf LFS_CFLAGS 2>/dev/null`
-				if test $? -eq 0 && test ! -z "$TMPFLAGS" && test "$TMPFLAGS" != undefined ; then
-					cc_check_no_clean $TMPFLAGS && _has_fseeko_offt_64=yes
-					if test "$_has_fseeko_offt_64" = yes ; then
-						echo "yes (adding $TMPFLAGS)"
-						append_var DEFINES "-DHAS_FSEEKO_OFFT_64"
-						append_var CXXFLAGS "$TMPFLAGS"
+				for flag in LFS_CFLAGS LFS64_CFLAGS ; do
+					TMPFLAGS=`getconf $flag 2>/dev/null`
+					if test $? -eq 0 && test ! -z "$TMPFLAGS" && test "$TMPFLAGS" != undefined ; then
+						cc_check_no_clean $TMPFLAGS && _has_fseeko_offt_64=yes
+						if test "$_has_fseeko_offt_64" = yes ; then
+							echo "yes (adding $TMPFLAGS)"
+							append_var DEFINES "-DHAS_FSEEKO_OFFT_64"
+							append_var CXXFLAGS "$TMPFLAGS"
+							break
+						fi
 					fi
-				fi
+				done
 			fi
 
 			# Otherwise, try the usual magical suspects
