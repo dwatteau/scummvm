@@ -39,6 +39,10 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSAutoreleasePool.h>
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= 1090
+#define NSModalResponseOK NSOKButton
+#endif
+
 #if __MAC_OS_X_VERSION_MIN_REQUIRED < 101400
 
     #ifndef NSControlStateValueOff
@@ -69,8 +73,8 @@
 
 - (id) init {
 	self = [super init];
-	_url = 0;
-	_panel = 0;
+	_url = nil;
+	_panel = nil;
 	return self;
 }
 
@@ -82,7 +86,7 @@
 - (void) showOpenPanel: (NSOpenPanel*) panel {
 	_panel = panel;
 
-	NSButton *showHiddenFilesButton = 0;
+	NSButton *showHiddenFilesButton = nil;
 	if ([panel respondsToSelector:@selector(setShowsHiddenFiles:)]) {
 		showHiddenFilesButton = [[NSButton alloc] init];
 		[showHiddenFilesButton setButtonType:NSButtonTypeSwitch];
@@ -105,11 +109,7 @@
 		[showHiddenFilesButton setAction:@selector(showHiddenFiles:)];
 	}
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED <= 1090
-	if ([panel runModal] == NSOKButton) {
-#else
 	if ([panel runModal] == NSModalResponseOK) {
-#endif
 		NSURL *url = [panel URL];
 		if ([url isFileURL]) {
 			_url = url;
@@ -118,7 +118,7 @@
 	}
 
 	[showHiddenFilesButton release];
-	_panel = 0;
+	_panel = nil;
 }
 
 - (IBAction) showHiddenFiles : (id) sender {
