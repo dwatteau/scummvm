@@ -42,6 +42,7 @@
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_9
 #define NSModalResponseOK NSOKButton
+typedef NSInteger NSModalResponse;
 #endif
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_14
@@ -110,7 +111,17 @@
 		[showHiddenFilesButton setAction:@selector(showHiddenFiles:)];
 	}
 
-	if ([panel runModal] == NSModalResponseOK) {
+	// XXX
+	NSString *lastPath = @"/private/tmp"; // see if stringByExpandingTildeInPath is required
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
+	NSModalResponse modalResponse = [panel runModalForDirectory:lastPath file:nil];
+#else
+	[panel setDirectoryURL:[NSURL fileURLWithPath:lastPath isDirectory:YES]];
+	NSModalResponse modalResponse = [panel runModal];
+#endif
+	// TODO: set, and get browser_lastpath, as in win32-dialogs.cpp
+
+	if (modalResponse == NSModalResponseOK) {
 		NSURL *url = [panel URL];
 		if ([url isFileURL]) {
 			_url = url;

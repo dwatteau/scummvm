@@ -60,8 +60,10 @@
 // https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Cocoa64BitGuide/64BitChangesCocoa/64BitChangesCocoa.html
 // from OSX 10.5 NSObjCRuntime.h; also done this way by QTKitDefines.h in OSX 10.4 QTKit.framework
 #if __LP64__ || NS_BUILD_32_LIKE_64
+typedef long NSInteger;
 typedef unsigned long NSUInteger;
 #else
+typedef int NSInteger;
 typedef unsigned int NSUInteger;
 #endif
 
