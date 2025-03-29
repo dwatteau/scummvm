@@ -26,6 +26,7 @@
 #if defined(MACOSX) && defined(USE_SYSDIALOGS)
 
 #include "backends/dialogs/macosx/macosx-dialogs.h"
+#include "backends/platform/sdl/macosx/macosx-compat.h"
 
 #include "common/config-manager.h"
 #include "common/algorithm.h"
@@ -39,11 +40,11 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSAutoreleasePool.h>
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED <= 1090
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_9
 #define NSModalResponseOK NSOKButton
 #endif
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < 101400
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_14
 
     #ifndef NSControlStateValueOff
       #define NSControlStateValueOff NSOffState
