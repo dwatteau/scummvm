@@ -690,7 +690,8 @@ void MickeyEngine::playSound(ENUM_MSA_SOUND iSound) {
 		readOfsData(IDOFS_MSA_SOUND_DATA, iSound, buffer, 1024);
 
 		for (;;) {
-			memcpy(&note, buffer + pBuf, sizeof(note));
+			note.counter = READ_LE_UINT16(&buffer[pBuf]);
+			note.length = buffer[pBuf + 2];
 			if (!note.counter && !note.length)
 				break;
 
