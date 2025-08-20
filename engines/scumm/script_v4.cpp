@@ -67,20 +67,7 @@ void ScummEngine_v4::o4_ifState() {
 	int a = getVarOrDirectWord(PARAM_1);
 	int b = getVarOrDirectByte(PARAM_2);
 
-	// WORKAROUND bug #5709 (also occurs in original): Some old versions of
-	// Indy3 sometimes fail to allocate IQ points correctly. To quote:
-	// "About the points error leaving Castle Brunwald: It seems to "reversed"!
-	// When you get caught, free yourself and escape, you get 25 IQ points even
-	// though you're not supposed to. However if you escape WITHOUT getting
-	// caught, you get 0 IQ points (supposed to get 25 IQ points)."
-	// This workaround is meant to address that.
-	//
-	// See also the similar ScummEngine_v5::o5_startScript() workaround.
-	if (_game.id == GID_INDY3 && a == 367 && currentScriptSlotIs(363) &&
-	    _currentRoom == 25 && enhancementEnabled(kEnhMinorBugFixes)) {
-		// Buggy script compares it with '1'
-		b = 0;
-	}
+	o4_ifStateApplyEnhancement(a, b);
 
 	jumpRelative(getState(a) == b);
 }
@@ -556,6 +543,27 @@ void ScummEngine_v4::o4_saveLoadGame() {
 	updateScriptPtr();
 	getScriptBaseAddress();
 	resetScriptPointer();
+}
+
+#pragma mark -
+#pragma mark --- Enhancements & workarounds ---
+#pragma mark -
+
+void ScummEngine_v4::o4_ifStateApplyEnhancement(int &a, int &b) {
+	// WORKAROUND bug #5709 (also occurs in original): Some old versions of
+	// Indy3 sometimes fail to allocate IQ points correctly. To quote:
+	// "About the points error leaving Castle Brunwald: It seems to "reversed"!
+	// When you get caught, free yourself and escape, you get 25 IQ points even
+	// though you're not supposed to. However if you escape WITHOUT getting
+	// caught, you get 0 IQ points (supposed to get 25 IQ points)."
+	// This workaround is meant to address that.
+	//
+	// See also the similar ScummEngine_v5::o5_startScript() workaround.
+	if (_game.id == GID_INDY3 && a == 367 && currentScriptSlotIs(363) &&
+	    _currentRoom == 25 && enhancementEnabled(kEnhMinorBugFixes)) {
+		// Buggy script compares it with '1'
+		b = 0;
+	}
 }
 
 } // End of namespace Scumm

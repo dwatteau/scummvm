@@ -65,7 +65,6 @@ protected:
 	void resetScummVars() override;
 	virtual void decodeParseString();
 	void decodeParseStringTextString(int textSlot);
-	void printPatchedMI1CannibalString(int textSlot, const byte *ptr);
 
 	void saveLoadWithSerializer(Common::Serializer &s) override;
 	int checkSoundEngineSaveDataSize(Serializer &s) override;
@@ -92,11 +91,6 @@ protected:
 	void walkActorToActor(int actor, int toActor, int dist);
 
 	void injectMISESpeech();
-
-	void workaroundIndy3TownsMissingLightningCastle(int sound);
-	void workaroundLoomHetchelDoubleHead(Actor *a, int act);
-	bool workaroundMonkey1JollyRoger(byte callerOpcode, int arg);
-	bool workaroundMonkey1StorekeeperWaitTablesLine();
 
 	/**
 	 * Fetch the next script word, then if cond is *false*, perform a relative jump.
@@ -207,6 +201,32 @@ protected:
 	void o5_walkActorTo();
 	void o5_walkActorToActor();
 	void o5_walkActorToObject();
+
+	/* Workarounds & enhancements */
+	// TODO FIXME: is it good style to have so many references, instead of ptrs?
+	void printPatchedMI1CannibalString(int textSlot, const byte *ptr);
+	bool o5_actorOpsApplyEnhancementsPre();
+	void o5_actorOpsApplyEnhancementsCostume(int act, int &cost);
+	bool o5_actorOpsApplyEnhancementsPalette(int act, int &palIdx, int &palVal, Actor *a);
+	bool o5_setClassApplyEnhancements(int obj, int cls);
+	void o5_addApplyEnhancements(int &a);
+	bool o5_animateActorApplyEnhancements(int act, int anim);
+	void o5_breakHereApplyEnhancements();
+	void o5_cursorCommandApplyEnhancements(int &m);
+	void o5_cutsceneApplyEnhancements(int *args);
+	bool o5_drawObjectApplyEnhancements(int &obj, int &state, int xpos, int ypos);
+	void o5_findObjectApplyEnhancements(int &obj);
+	bool o5_isScriptRunningApplyEnhancements();
+	bool o5_ifClassOfIsApplyEnhancements(int obj, int cls, bool &cond);
+	void o5_isEqualApplyEnhancements(int var, int16 &a, int16 &b);
+	bool o5_isLessEqualApplyEnhancements(int var, int16 &a, int16 &b);
+	void o5_notEqualZeroApplyEnhancements(int var, int &a);
+	bool o5_equalZeroApplyEnhancements(int var, int &a, const byte *oldaddr);
+	void o5_loadRoomApplyEnhancements(int &room);
+	void workaroundIndy3TownsMissingLightningCastle(int sound);
+	void workaroundLoomHetchelDoubleHead(Actor *a, int act);
+	bool workaroundMonkey1JollyRoger(byte callerOpcode, int arg);
+	bool workaroundMonkey1StorekeeperWaitTablesLine();
 };
 
 

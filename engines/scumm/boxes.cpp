@@ -176,15 +176,12 @@ byte ScummEngine::getMaskFromBox(int box) {
 	if (!ptr)
 		return 0;
 
-	// WORKAROUND for bug #1315: the wall sprite is drawn over Indy when he
-	// stands at a specific place near Nur-Ab-Sal's abode. This is a bug in
-	// the data files, as it also occurs with the original engine. We work
-	// around it here anyway.
-	if (_game.id == GID_INDY4 && _currentRoom == 225 && _roomResource == 94 && box == 8 && enhancementEnabled(kEnhMinorBugFixes))
-		return 0;
+	int maskEnhancements = getMaskFromBoxApplyEnhancements(box);
+	if (maskEnhancements != -1)
+		return (byte)maskEnhancements;
 
 	if (_game.version == 8)
-		return (byte) FROM_LE_32(ptr->v8.mask);
+		return (byte)FROM_LE_32(ptr->v8.mask);
 	else if (_game.version == 0)
 		return ptr->v0.mask;
 	else if (_game.version <= 2)
@@ -479,6 +476,8 @@ Box *ScummEngine::getBoxBaseAddr(int box) {
 	// Note that this may cause different behavior than the original game
 	// engine exhibited! To faithfully reproduce the behavior of the original
 	// engine, we would have to know the data coming *after* the walkbox table.
+	//
+	// TODO: add a debug trace here as well?
 	if (_game.version <= 4 && ptr[0] == box)
 		box--;
 
@@ -733,7 +732,7 @@ int ScummEngine::getNextBox(byte from, byte to) {
 	const byte *boxm;
 	byte i;
 	const int numOfBoxes = getNumBoxes();
-	int dest = -1;
+	int dest;
 
 	if (from == to)
 		return to;
@@ -769,7 +768,7 @@ int ScummEngine::getNextBox(byte from, byte to) {
 		return (int8)boxm[to];
 	}
 
-	// WORKAROUND #1: It seems that in some cases, the box matrix is corrupt
+	// WORKAROUND: It seems that in some cases, the box matrix is corrupt
 	// (more precisely, is too short) in the datafiles already. In
 	// particular this seems to be the case in room 46 of Indy3 EGA (see
 	// also bug #1017). This didn't cause problems in the original
@@ -782,11 +781,8 @@ int ScummEngine::getNextBox(byte from, byte to) {
 	// resource, and abort the search once we reach the end.
 	const byte *end = boxm + getResourceSize(rtMatrix, 1);
 
-	// WORKAROUND #2: In addition to the above, we have to add this special
-	// case to fix the scene in Indy3 where Indy meets Hitler in Berlin.
-	// See bug #1017 and also bug #1052.
-	if (_game.id == GID_INDY3 && _roomResource == 46 && from == 1 && to == 0 && enhancementEnabled(kEnhGameBreakingBugFixes))
-		return 0;
+	if ((dest = getNextBoxApplyEnhancements(from, to)) != -1)
+		return dest;
 
 	// Skip up to the matrix data for box 'from'
 	for (i = 0; i < from && boxm < end; i++) {
@@ -795,6 +791,7 @@ int ScummEngine::getNextBox(byte from, byte to) {
 		boxm++;
 	}
 
+	dest = -1;
 	// Now search for the entry for box 'to'
 	while (boxm < end && boxm[0] != 0xFF) {
 		if (boxm[0] <= to && to <= boxm[1])
@@ -1380,6 +1377,34 @@ void getGates(const BoxCoords &box1, const BoxCoords &box2, Common::Point gateA[
 		gateB[1] = boxCorner[line2];
 		gateB[0] = closestPoint[line2];
 	}
+}
+
+#pragma mark -
+#pragma mark --- Enhancements & workarounds ---
+#pragma mark -
+
+int ScummEngine::getMaskFromBoxApplyEnhancements(int box) {
+	// WORKAROUND for bug #1315: the wall sprite is drawn over Indy when he
+	// stands at a specific place near Nur-Ab-Sal's abode. This is a bug in
+	// the data files, as it also occurs with the original engine. We work
+	// around it here anyway.
+	if (_game.id == GID_INDY4 && _currentRoom == 225 && _roomResource == 94 && box == 8 && enhancementEnabled(kEnhMinorBugFixes))
+		return 0;
+
+	// Result should not be interpreted as a mask value
+	return -1;
+}
+
+int ScummEngine::getNextBoxApplyEnhancements(byte from, byte to) {
+	// WORKAROUND: In addition to the necessary checks for the end of the
+	// box matrix resource (see getNextBox()), we have to add this special
+	// case to fix the scene in Indy3 where Indy meets Hitler in Berlin.
+	// See bug #1017 and also bug #1052.
+	if (_game.id == GID_INDY3 && _roomResource == 46 && from == 1 && to == 0 && enhancementEnabled(kEnhGameBreakingBugFixes))
+		return 0;
+
+	// Result should not be interpreted as a box value
+	return -1;
 }
 
 } // End of namespace Scumm

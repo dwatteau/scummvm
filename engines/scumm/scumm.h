@@ -1126,10 +1126,18 @@ protected:
 public:
 	const byte *findResourceData(uint32 tag, const byte *ptr);
 	const byte *findResource(uint32 tag, const byte *ptr);
+
+	// TODO: is visibility OK?
 	void applyWorkaroundIfNeeded(ResType type, int idx);
 	bool verifyMI2MacBootScript();
 	bool verifyMI2MacBootScript(byte *buf, int size);
 	bool tryPatchMI1CannibalScript(byte *buf, int size);
+	bool runScriptApplyEnhancements(int script);
+	int getMaskFromBoxApplyEnhancements(int box);
+	int getNextBoxApplyEnhancements(byte from, byte to);
+	int getVerbEntrypointApplyEnhancements(int obj, int entry);
+	bool printStringApplyEnhancements(int m, const byte *msg);
+	const byte *convertNameMessageApplyEnhancements(int num, const byte *ptr);
 
 	int getResourceDataSize(const byte *ptr) const;
 	void dumpResource(const char *tag, int index, const byte *ptr, int length = -1);

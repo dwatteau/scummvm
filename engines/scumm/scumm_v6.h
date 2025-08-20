@@ -492,6 +492,9 @@ protected:
 	void o6_setBoxSet();
 	void o6_shuffle();
 
+	bool o6_startScriptApplyEnhancements(int script, int *args);
+	bool o6_talkActorApplyEnhancementsPre();
+	bool o6_talkActorApplyEnhancementsPost(int offset);
 	void o6_animateActorApplyEnhancements(int &act, int &anim);
 
 	byte VAR_VIDEONAME;

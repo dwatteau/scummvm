@@ -71,6 +71,9 @@ protected:
 	void o4_pickupObject();
 	void o4_saveLoadGame();
 	void o4_saveLoadVars();
+
+	/* Workarounds & enhancements */
+	void o4_ifStateApplyEnhancement(int &a, int &b);
 };
 
 

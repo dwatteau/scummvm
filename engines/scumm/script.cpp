@@ -42,22 +42,8 @@ void ScummEngine::runScript(int script, bool freezeResistant, bool recursive, in
 	byte scriptType;
 	int slot;
 
-	// WORKAROUND for crash (#15256) in Maniac Mansion C64 demo:
-	// Attempting to, as any character, give the can of Pepsi to any other character
-	// attempts to start script 43. Unfortunately script 43 does not exist in
-	// the resources and crashes the game even on the original executable :-)
-	if (enhancementEnabled(kEnhGameBreakingBugFixes) && _game.id == GID_MANIAC &&
-		_game.version == 0 && (_game.features & GF_DEMO) && script == 43)
+	if (runScriptApplyEnhancements(script))
 		return;
-
-	// WORKAROUND for bug in v0/v1 Zak McKracken:
-	// Picking up the yellow shard in the Mexican Temple while playing as Annie was not possible.
-	// This was fixed in v2.
-	if (enhancementEnabled(kEnhGameBreakingBugFixes) && _game.id == GID_ZAK &&
-		_game.version < 2 && script == 119 && VAR(VAR_EGO) == 2) {
-		addObjectToInventory(56, 14);
-		putOwner(56, VAR(VAR_EGO));
-	}
 
 	if (!script)
 		return;
@@ -168,28 +154,8 @@ int ScummEngine::getVerbEntrypoint(int obj, int entry) {
 	const byte *objptr, *verbptr;
 	int verboffs;
 
-	// WORKAROUND for bug #2826: Disallow pulling the rope if it's
-	// already in the player's inventory.
-	//
-	// Doing so would cause fatal errors, such as "Object 1047 not
-	// found in room 98" in (at least) the original DOS/English
-	// release, if one loads the savegame in the bug ticket above,
-	// and pulls the rope after moving to the first room on the
-	// right. The same error happened with the original interpreter.
-	//
-	// Script 97-1047 was fixed in later releases, in different ways.
-	// On Amiga, a getObjectOwner() check was added; the Macintosh
-	// release completely disables pulling the rope, instead. We
-	// choose to follow the latter, as it's simpler, and the former
-	// made Guybrush silent when trying to trigger this action.
-	//
-	// (The Special Edition is based on the original release with
-	// the buggy script, but it doesn't cause any fatal error,
-	// although it does glitch, when playing in Classic Mode.)
-	if (_game.id == GID_MONKEY2 && obj == 1047 && entry == 6 && whereIsObject(obj) == WIO_INVENTORY &&
-		enhancementEnabled(kEnhGameBreakingBugFixes)) {
-		return 0;
-	}
+	if ((verboffs = getVerbEntrypointApplyEnhancements(obj, entry)) != -1)
+		return verboffs;
 
 	if (whereIsObject(obj) == WIO_NOT_FOUND)
 		return 0;
@@ -243,6 +209,27 @@ int ScummEngine::getVerbEntrypoint(int obj, int entry) {
 		do {
 			if (!*verbptr)
 				return 0;
+
+			// XXX: this is quite ugly... patching the 'entry prologue'
+			// could be better, but then offsets need to be recomputed
+			// for every language, so... no.  Anything else?
+			if (obj == 584) {
+				// Bind 'Use'/'Push'/'Pull' to the 'override' (?) case
+				if (entry == 5 || entry == 6 || entry == 7) {
+					if (*verbptr == 13)
+						break;
+				}
+				// Move the 'override' (?) case to the bottom of the list
+				// seems to be injected by LFLF_0061/SCRP_0121...
+				else if (entry == 13) {
+					if (*verbptr == 0xFF)
+						break;
+
+					verbptr += 3;
+					continue;
+				}
+			}
+
 			if (*verbptr == entry || *verbptr == 0xFF)
 				break;
 			verbptr += 3;
@@ -568,7 +555,8 @@ int ScummEngine::fetchScriptDWordSigned() {
 int ScummEngine::readVar(uint var) {
 	int a;
 
-	debugC(DEBUG_VARS, "readvar(%d)", var);
+	if (var == 212)
+		debugC(DEBUG_VARS, "readvar(%d)", var);
 
 	if ((var & 0x2000) && (_game.version <= 5)) {
 		a = fetchScriptWord();
@@ -711,7 +699,8 @@ int ScummEngine::readVar(uint var) {
 }
 
 void ScummEngine::writeVar(uint var, int value) {
-	debugC(DEBUG_VARS, "writeVar(%d, %d)", var, value);
+	if (var == 212)
+		debugC(DEBUG_VARS, "writeVar(%d, %d) -- from script %d-%d ", var, value, _roomResource, _currentScript != 0xFF ? vm.slot[_currentScript].number  : -1);
 
 	if (!(var & 0xF000)) {
 		assertRange(0, var, _numVariables - 1, "variable (writing)");
@@ -1689,6 +1678,59 @@ void ScummEngine::endOverride() {
 
 	if (_game.version >= 4)
 		VAR(VAR_OVERRIDE) = 0;
+}
+
+#pragma mark -
+#pragma mark --- Enhancements & workarounds ---
+#pragma mark -
+
+bool ScummEngine::runScriptApplyEnhancements(int script) {
+	// WORKAROUND for crash (#15256) in Maniac Mansion C64 demo:
+	// Attempting to, as any character, give the can of Pepsi to any other character
+	// attempts to start script 43. Unfortunately script 43 does not exist in
+	// the resources and crashes the game even on the original executable :-)
+	if (enhancementEnabled(kEnhGameBreakingBugFixes) && _game.id == GID_MANIAC &&
+		_game.version == 0 && (_game.features & GF_DEMO) && script == 43)
+		return true;
+
+	// WORKAROUND for bug in v0/v1 Zak McKracken:
+	// Picking up the yellow shard in the Mexican Temple while playing as Annie was not possible.
+	// This was fixed in v2.
+	if (enhancementEnabled(kEnhGameBreakingBugFixes) && _game.id == GID_ZAK &&
+		_game.version < 2 && script == 119 && VAR(VAR_EGO) == 2) {
+		addObjectToInventory(56, 14);
+		putOwner(56, VAR(VAR_EGO));
+	}
+
+	return false;
+}
+
+int ScummEngine::getVerbEntrypointApplyEnhancements(int obj, int entry) {
+	// WORKAROUND for bug #2826: Disallow pulling the rope if it's
+	// already in the player's inventory.
+	//
+	// Doing so would cause fatal errors, such as "Object 1047 not
+	// found in room 98" in (at least) the original DOS/English
+	// release, if one loads the savegame in the bug ticket above,
+	// and pulls the rope after moving to the first room on the
+	// right. The same error happened with the original interpreter.
+	//
+	// Script 97-1047 was fixed in later releases, in different ways.
+	// On Amiga, a getObjectOwner() check was added; the Macintosh
+	// release completely disables pulling the rope, instead. We
+	// choose to follow the latter, as it's simpler, and the former
+	// made Guybrush silent when trying to trigger this action.
+	//
+	// (The Special Edition is based on the original release with
+	// the buggy script, but it doesn't cause any fatal error,
+	// although it does glitch, when playing in Classic Mode.)
+	if (_game.id == GID_MONKEY2 && obj == 1047 && entry == 6 && whereIsObject(obj) == WIO_INVENTORY &&
+		enhancementEnabled(kEnhGameBreakingBugFixes)) {
+		return 0;
+	}
+
+	// Result should not be interpreted as a verb entrypoint value
+	return -1;
 }
 
 } // End of namespace Scumm

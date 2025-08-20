@@ -55,55 +55,11 @@ namespace Scumm {
 
 
 void ScummEngine::printString(int m, const byte *msg) {
+	if (printStringApplyEnhancements(m, msg))
+		return;
+
 	switch (m) {
 	case 0:
-		// WORKAROUND bug #12734: The script tries to clear the currently
-		// displayed message after Rapp gives you the map, but that means
-		// you'll never see Guybrush's reaction to finding a map piece.
-		//
-		// It's a bit hard to pin down the exact case, since it happens
-		// at a few different points during the script. We limit it to
-		// when the player has the map piece.
-		//
-		// We have to do it here, because we don't want to delay the
-		// animation of Rapp turning back to Ashes.
-		if (_game.id == GID_MONKEY2 && _roomResource == 19 &&
-			currentScriptSlotIs(203) &&
-			_actorToPrintStrFor == 255 && strcmp((const char *)msg, " ") == 0 &&
-			getOwner(200) == VAR(VAR_EGO) && VAR(VAR_HAVE_MSG) &&
-			enhancementEnabled(kEnhMinorBugFixes)) {
-			return;
-		}
-
-		// WORKAROUND bug #13378: In the German CD version, Sam's
-		// reactions to Max beating up the scientist run much too quick
-		// for the animation to match. We get around this by slowing
-		// down that animation.
-		//
-		// In the italian CD version, the whole scene is sped up to
-		// keep up with Sam's speech. We compensate for this by slowing
-		// down the other animations.
-		if (_game.id == GID_SAMNMAX && currentScriptSlotIs(65) && enhancementEnabled(kEnhTimingChanges)) {
-			Actor *a;
-
-			if (_language == Common::DE_DEU && strcmp(_game.variant, "Floppy") != 0) {
-				if (memcmp(msg + 16, "Ohh!", 4) == 0) {
-					a = derefActorSafe(2, "printString");
-					if (a)
-						a->setAnimSpeed(3);
-				}
-			} else if (_language == Common::IT_ITA && strcmp(_game.variant, "Floppy") != 0) {
-				if (memcmp(msg + 16, "Ooh.", 4) == 0) {
-					a = derefActorSafe(3, "printString");
-					if (a)
-						a->setAnimSpeed(2);
-					a = derefActorSafe(10, "printString");
-					if (a)
-						a->setAnimSpeed(2);
-				}
-			}
-		}
-
 		actorTalk(msg);
 		break;
 	case 1:
@@ -1736,18 +1692,9 @@ int ScummEngine::convertNameMessage(byte *dst, int dstSize, int var) {
 		const byte *ptr = getObjOrActorName(num);
 
 		if (ptr) {
-			// WORKAROUND: Some releases of Indy3 miss the description of one of the
-			// tunnels in the catacombs. For example, it's there in the Macintosh or
-			// in the Japanese FM-TOWNS release, but missing from the English FM-TOWNS
-			// or the DOS VGA releases. This is a minor issue, but since LEC themselves
-			// fixed this for some releases, we can do the same... just copy the object
-			// description from the other tunnel, if the former is empty.
-			if (_game.id == GID_INDY3 && _roomResource == 59 && num == 725 && *ptr == 0 &&
-				whereIsObject(724) != WIO_NOT_FOUND && enhancementEnabled(kEnhMinorBugFixes)) {
-				const byte *fallbackObjPtr = getObjOrActorName(724);
-				if (fallbackObjPtr)
-					ptr = fallbackObjPtr;
-			}
+			const byte *newEnhancementName;
+			if ((newEnhancementName = convertNameMessageApplyEnhancements(num, ptr)))
+				ptr = newEnhancementName;
 
 			int increment = convertMessageToString(ptr, dst, dstSize);
 			// Save the final consonant (jongsung) of the last Korean character
@@ -2080,10 +2027,15 @@ void ScummEngine_v7::translateText(const byte *text, byte *trans_buff, int trans
 		_lastStringTag[i] = 0;
 	}
 
-	// WORKAROUND for bug #1977.
+	// Some subtitles are missing their string ID prefixes, in The Dig,
+	// causing bug #1977. This was fixed in the second release of the
+	// game with the following interpreter hack, taken from disasm.
+	// (Only applies to the subtitles and not speech.)
+	//
+	// TODO: if this was "taken from the second release", does this
+	// mean that there was a first release where the bug happened?
+	// If so, does the following qualify as an Enhancement, then?
 	if (_game.id == GID_DIG) {
-		// Based on the second release of The Dig
-		// Only applies to the subtitles and not speech
 		if (!strncmp((const char *)text, "faint light", 12))
 			text = (const byte *)"/NEW.007/faint light";
 		else if (!strncmp((const char *)text, "glowing crystal", 16))
@@ -2392,6 +2344,80 @@ Common::CodePage ScummEngine::getDialogCodePage() const {
 	default:
 		return (_game.version > 7) ? Common::kWindows1252 : Common::kDos850;
 	}
+}
+
+#pragma mark -
+#pragma mark --- Enhancements & workarounds ---
+#pragma mark -
+
+bool ScummEngine::printStringApplyEnhancements(int m, const byte *msg) {
+	switch (m) {
+	case 0: // actorTalk
+
+		// WORKAROUND bug #12734: The script tries to clear the currently
+		// displayed message after Rapp gives you the map, but that means
+		// you'll never see Guybrush's reaction to finding a map piece.
+		//
+		// It's a bit hard to pin down the exact case, since it happens
+		// at a few different points during the script. We limit it to
+		// when the player has the map piece.
+		//
+		// We have to do it here, because we don't want to delay the
+		// animation of Rapp turning back to Ashes.
+		if (_game.id == GID_MONKEY2 && _roomResource == 19 &&
+			currentScriptSlotIs(203) &&
+			_actorToPrintStrFor == 255 && strcmp((const char *)msg, " ") == 0 &&
+			getOwner(200) == VAR(VAR_EGO) && VAR(VAR_HAVE_MSG) &&
+			enhancementEnabled(kEnhMinorBugFixes)) {
+			return true;
+		}
+
+		// WORKAROUND bug #13378: In the German CD version, Sam's
+		// reactions to Max beating up the scientist run much too quick
+		// for the animation to match. We get around this by slowing
+		// down that animation.
+		//
+		// In the italian CD version, the whole scene is sped up to
+		// keep up with Sam's speech. We compensate for this by slowing
+		// down the other animations.
+		if (_game.id == GID_SAMNMAX && currentScriptSlotIs(65) && enhancementEnabled(kEnhTimingChanges)) {
+			Actor *a;
+
+			if (_language == Common::DE_DEU && strcmp(_game.variant, "Floppy") != 0 &&
+				memcmp(msg + 16, "Ohh!", 4) == 0) {
+				if ((a = derefActorSafe(2, "printStringApplyEnhancements")))
+					a->setAnimSpeed(3);
+			} else if (_language == Common::IT_ITA && strcmp(_game.variant, "Floppy") != 0 &&
+				memcmp(msg + 16, "Ooh.", 4) == 0) {
+				if ((a = derefActorSafe(3, "printStringApplyEnhancements")))
+					a->setAnimSpeed(2);
+				if ((a = derefActorSafe(10, "printStringApplyEnhancements")))
+					a->setAnimSpeed(2);
+			}
+		}
+	default:
+		break;
+	}
+
+	return false;
+}
+
+const byte *ScummEngine::convertNameMessageApplyEnhancements(int num, const byte *ptr) {
+	const byte *fallbackObjPtr;
+
+	// WORKAROUND: Some releases of Indy3 miss the description of one of the
+	// tunnels in the catacombs. For example, it's there in the Macintosh or
+	// in the Japanese FM-TOWNS release, but missing from the English FM-TOWNS
+	// or the DOS VGA releases. This is a minor issue, but since LEC themselves
+	// fixed this for some releases, we can do the same... just copy the object
+	// description from the other tunnel, if the former is empty.
+	if (_game.id == GID_INDY3 && _roomResource == 59 && num == 725 && *ptr == 0 &&
+		whereIsObject(724) != WIO_NOT_FOUND && enhancementEnabled(kEnhMinorBugFixes)) {
+		if ((fallbackObjPtr = getObjOrActorName(724)))
+			return fallbackObjPtr;
+	}
+
+	return nullptr;
 }
 
 } // End of namespace Scumm

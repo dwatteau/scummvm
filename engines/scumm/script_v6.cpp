@@ -1074,48 +1074,8 @@ void ScummEngine_v6::o6_startScript() {
 	script = pop();
 	flags = pop();
 
-	// WORKAROUND: In DOTT, when Jefferson builds the fire, `startScript(1,106,[91,5])`
-	// is called, which randomly changes the state of the fire object between 1 and 5,
-	// as long as Hoagie doesn't exit this room. This makes him randomly fail
-	// interacting with it, saying "I can't reach it." instead of the intended "No.
-	// Fire bad." line. It looks like the 1-5 states for the fire object are useless
-	// leftovers which can be safely ignored in order to make sure that Hoagie's
-	// comment is always available (maybe the fire was meant to be displayed
-	// differently when it's just been lit, but then the idea was dropped?).
-	// This also happens with the original interpreters and with the remaster.
-	if (_game.id == GID_TENTACLE && _roomResource == 13 &&
-		currentScriptSlotIs(21) && script == 106 &&
-		args[0] == 91 && enhancementEnabled(kEnhRestoredContent)) {
+	if (o6_startScriptApplyEnhancements(script, args))
 		return;
-	}
-
-	// WORKAROUND for a bug also present in the original EXE: After greasing (or oiling?)
-	// the cannonballs in the Plunder Town Theater, during the juggling show, the game
-	// cuts from room 18 (backstage) to room 19 (stage).
-	//
-	// Usually, when loading a room script 29 handles the change of background music,
-	// based on which room we've just loaded.
-	// Unfortunately, during this particular cutscene, script 29 is not executing,
-	// therefore the music is unchanged from room 18 to 19 (the muffled backstage
-	// version is played), and is not coherent with the drums fill played afterwards
-	// (sequence 2225), which is unmuffled.
-	//
-	// This fix checks for this situation happening (and only this one), and makes a call
-	// to a soundKludge operation like script 29 would have done.
-	if (_game.id == GID_CMI && _currentRoom == 19 &&
-		currentScriptSlotIs(168) && script == 118 && enhancementEnabled(kEnhAudioChanges)) {
-		int list[16] = { 4096, 1278, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		_sound->soundKludge(list, 2);
-	}
-
-	// WORKAROUND bug #269: At Dino Bungee National Memorial, the buttons for
-	// the Wally and Rex dinosaurs will always restart their speech, instead of
-	// stopping and starting their speech. This was a script bug in the original
-	// game, which would also block the "That was informative" reaction from Sam.
-	if (_game.id == GID_SAMNMAX && _roomResource == 59 &&
-		currentScriptSlotIs(201) && script == 48 && enhancementEnabled(kEnhRestoredContent)) {
-		o6_breakHere();
-	}
 
 	runScript(script, (flags & 1) != 0, (flags & 2) != 0, args);
 }
@@ -2828,111 +2788,16 @@ void ScummEngine_v6::o6_talkActor() {
 		return;
 	}
 
-	// WORKAROUND: If Sam tries to buy an object at Snuckey's without having
-	// any money, Max's comment on capitalism may be cut too early because the
-	// employee reacts immediately after Max without any prior waitForMessage().
-	// The magic values below come from scripts 11-67 and 11-205.
-	//
-	// This call can't just be inserted after Max's line; it needs to be done
-	// just before the employee's line, otherwise the timing with Sam's moves
-	// will feel off -- so we can't use the _forcedWaitForMessage trick.
-	if (_game.id == GID_SAMNMAX && _roomResource == 11 && currentScriptSlotIs(67)
-		&& getOwner(70) != 2 && !readVar(ROOM_VAL(67)) && !readVar(ROOM_VAL(39)) && readVar(ROOM_VAL(12)) == 1
-		&& !getClass(126, 6) && enhancementEnabled(kEnhRestoredContent)) {
-		if (VAR(VAR_HAVE_MSG)) {
-			_scriptPointer--;
-			o6_breakHere();
-			return;
-		}
-	}
-
 	_actorToPrintStrFor = pop();
 
-	// WORKAROUND for bug #3803: "DOTT: Bernard impersonating LaVerne"
-	// Original script did not check for VAR_EGO == 2 before executing
-	// a talkActor opcode.
-	if (_game.id == GID_TENTACLE && currentScriptSlotIs(307)
-			&& VAR(VAR_EGO) != 2 && _actorToPrintStrFor == 2
-			&& enhancementEnabled(kEnhMinorBugFixes)) {
-		_scriptPointer += resStrLen(_scriptPointer) + 1;
+	if (o6_talkActorApplyEnhancementsPre())
 		return;
-	}
-
-	// WORKAROUND: In the French release of Full Throttle, a "piano-low-kick"
-	// string appears in the text when Ben looks at one of the small pictures
-	// above the piano in the bar. Probably an original placeholder which
-	// hasn't been properly replaced... Fixed in the 2017 remaster, though.
-	if (_game.id == GID_FT && _language == Common::FR_FRA
-		&& _roomResource == 7 && currentScriptSlotIs(77)
-		&& _actorToPrintStrFor == 1 && enhancementEnabled(kEnhTextLocFixes)) {
-		const int len = resStrLen(_scriptPointer) + 1;
-		if (len == 93 && memcmp(_scriptPointer + 16 + 18, "piano-low-kick", 14) == 0) {
-			byte *tmpBuf = new byte[len - 14 + 3];
-			memcpy(tmpBuf, _scriptPointer, 16 + 18);
-			memcpy(tmpBuf + 16 + 18, ", 1", 3);
-			memcpy(tmpBuf + 16 + 18 + 3, _scriptPointer + 16 + 18 + 14, len - (16 + 18 + 14));
-
-			_string[0].loadDefault();
-			actorTalk(tmpBuf);
-			delete[] tmpBuf;
-			_scriptPointer += len;
-			return;
-		}
-	}
 
 	_string[0].loadDefault();
 	actorTalk(_scriptPointer);
 
-	// WORKAROUND: Dr Fred's first reaction line about Hoagie's and Laverne's
-	// units after receiving a new diamond is unused because of missing
-	// wait.waitForMessage() calls. We always simulate this opcode when
-	// triggering Dr Fred's lines in this part of the script, since there is
-	// no stable offset for all the floppy, CD and translated versions, and
-	// no easy way to only target the impacted lines.
-	if (_game.id == GID_TENTACLE && currentScriptSlotIs(9)
-		&& vm.localvar[_currentScript][0] == 216 && _actorToPrintStrFor == 4 && enhancementEnabled(kEnhRestoredContent)) {
-		_forcedWaitForMessage = true;
-		_scriptPointer--;
-
+	if (o6_talkActorApplyEnhancementsPost(offset))
 		return;
-	}
-
-	// WORKAROUND for bug #1452: "DIG: Missing subtitles when talking to Brink"
-	// Original script does not have wait.waitForMessage() after several messages:
-	//
-	// [011A] (5D)   if (getActorCostume(VAR_EGO) == 1) {
-	// [0126] (BA)     talkActor("/STOP.008/Low out.",3)
-	// [013D] (A9)     wait.waitForMessage()
-	// [013F] (5D)   } else if (var227 == 0) {
-	// [014C] (BA)     talkActor("/STOP.009/Never mind.",3)
-	// [0166] (73)   } else {
-	//
-	// Here we simulate that opcode.
-	if (_game.id == GID_DIG && currentScriptSlotIs(88) && enhancementEnabled(kEnhRestoredContent)) {
-		if (offset == 0x158 || offset == 0x214 || offset == 0x231 || offset == 0x278) {
-			_forcedWaitForMessage = true;
-			_scriptPointer--;
-
-			return;
-		}
-	}
-
-	// WORKAROUND bug #4410: Restore a missing subtitle when Low is inside the
-	// tomb and he finds the purpose of the crypt ("/TOMB.022/Now that I know
-	// what I'm looking for"...). Also happens in the original interpreters.
-	// We used to do this in actorTalk(), but then Low's proper walking
-	// animation was lost and he would just glide over the floor. Having him
-	// wait before he moves is less disturbing, since that's something he
-	// already does in the game.
-	if (_game.id == GID_DIG && _roomResource == 58 && currentScriptSlotIs(402)
-		&& _actorToPrintStrFor == 3 && vm.localvar[_currentScript][0] == 0
-		&& readVar(ROOM_VAL(94)) && readVar(ROOM_VAL(78)) && !readVar(ROOM_VAL(97))
-		&& _scummVars[269] == 3 && getState(388) == 2 && enhancementEnabled(kEnhRestoredContent)) {
-		_forcedWaitForMessage = true;
-		_scriptPointer--;
-
-		return;
-	}
 
 	_scriptPointer += resStrLen(_scriptPointer) + 1;
 }
@@ -3708,6 +3573,162 @@ void ScummEngine_v6::decodeParseString(int m, int n) {
 #pragma mark -
 #pragma mark --- Enhancements & workarounds ---
 #pragma mark -
+
+bool ScummEngine_v6::o6_startScriptApplyEnhancements(int script, int *args) {
+	// WORKAROUND: In DOTT, when Jefferson builds the fire, `startScript(1,106,[91,5])`
+	// is called, which randomly changes the state of the fire object between 1 and 5,
+	// as long as Hoagie doesn't exit this room. This makes him randomly fail
+	// interacting with it, saying "I can't reach it." instead of the intended "No.
+	// Fire bad." line. It looks like the 1-5 states for the fire object are useless
+	// leftovers which can be safely ignored in order to make sure that Hoagie's
+	// comment is always available (maybe the fire was meant to be displayed
+	// differently when it's just been lit, but then the idea was dropped?).
+	// This also happens with the original interpreters and with the remaster.
+	if (_game.id == GID_TENTACLE && _roomResource == 13 &&
+		currentScriptSlotIs(21) && script == 106 &&
+		args[0] == 91 && enhancementEnabled(kEnhRestoredContent)) {
+		return true;
+	}
+
+	// WORKAROUND for a bug also present in the original EXE: After greasing (or oiling?)
+	// the cannonballs in the Plunder Town Theater, during the juggling show, the game
+	// cuts from room 18 (backstage) to room 19 (stage).
+	//
+	// Usually, when loading a room script 29 handles the change of background music,
+	// based on which room we've just loaded.
+	// Unfortunately, during this particular cutscene, script 29 is not executing,
+	// therefore the music is unchanged from room 18 to 19 (the muffled backstage
+	// version is played), and is not coherent with the drums fill played afterwards
+	// (sequence 2225), which is unmuffled.
+	//
+	// This fix checks for this situation happening (and only this one), and makes a call
+	// to a soundKludge operation like script 29 would have done.
+	if (_game.id == GID_CMI && _currentRoom == 19 &&
+		currentScriptSlotIs(168) && script == 118 && enhancementEnabled(kEnhAudioChanges)) {
+		int list[16] = { 4096, 1278, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		_sound->soundKludge(list, 2);
+	}
+
+	// WORKAROUND bug #269: At Dino Bungee National Memorial, the buttons for
+	// the Wally and Rex dinosaurs will always restart their speech, instead of
+	// stopping and starting their speech. This was a script bug in the original
+	// game, which would also block the "That was informative" reaction from Sam.
+	if (_game.id == GID_SAMNMAX && _roomResource == 59 &&
+		currentScriptSlotIs(201) && script == 48 && enhancementEnabled(kEnhRestoredContent)) {
+		o6_breakHere();
+	}
+
+	return false;
+}
+
+bool ScummEngine_v6::o6_talkActorApplyEnhancementsPre() {
+	// WORKAROUND: If Sam tries to buy an object at Snuckey's without having
+	// any money, Max's comment on capitalism may be cut too early because the
+	// employee reacts immediately after Max without any prior waitForMessage().
+	// The magic values below come from scripts 11-67 and 11-205.
+	//
+	// This call can't just be inserted after Max's line; it needs to be done
+	// just before the employee's line, otherwise the timing with Sam's moves
+	// will feel off -- so we can't use the _forcedWaitForMessage trick.
+	if (_game.id == GID_SAMNMAX && _roomResource == 11 && currentScriptSlotIs(67)
+		&& getOwner(70) != 2 && !readVar(ROOM_VAL(67)) && !readVar(ROOM_VAL(39)) && readVar(ROOM_VAL(12)) == 1
+		&& !getClass(126, 6) && enhancementEnabled(kEnhRestoredContent)) {
+		if (VAR(VAR_HAVE_MSG)) {
+			_scriptPointer--;
+			o6_breakHere();
+			return true;
+		}
+	}
+
+	// WORKAROUND for bug #3803: "DOTT: Bernard impersonating LaVerne"
+	// Original script did not check for VAR_EGO == 2 before executing
+	// a talkActor opcode.
+	if (_game.id == GID_TENTACLE && currentScriptSlotIs(307)
+			&& VAR(VAR_EGO) != 2 && _actorToPrintStrFor == 2
+			&& enhancementEnabled(kEnhMinorBugFixes)) {
+		_scriptPointer += resStrLen(_scriptPointer) + 1;
+		return true;
+	}
+
+	// WORKAROUND: In the French release of Full Throttle, a "piano-low-kick"
+	// string appears in the text when Ben looks at one of the small pictures
+	// above the piano in the bar. Probably an original placeholder which
+	// hasn't been properly replaced... Fixed in the 2017 remaster, though.
+	if (_game.id == GID_FT && _language == Common::FR_FRA
+		&& _roomResource == 7 && currentScriptSlotIs(77)
+		&& _actorToPrintStrFor == 1 && enhancementEnabled(kEnhTextLocFixes)) {
+		const int len = resStrLen(_scriptPointer) + 1;
+		if (len == 93 && memcmp(_scriptPointer + 16 + 18, "piano-low-kick", 14) == 0) {
+			byte *tmpBuf = new byte[len - 14 + 3];
+			memcpy(tmpBuf, _scriptPointer, 16 + 18);
+			memcpy(tmpBuf + 16 + 18, ", 1", 3);
+			memcpy(tmpBuf + 16 + 18 + 3, _scriptPointer + 16 + 18 + 14, len - (16 + 18 + 14));
+
+			_string[0].loadDefault();
+			actorTalk(tmpBuf);
+			delete[] tmpBuf;
+			_scriptPointer += len;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ScummEngine_v6::o6_talkActorApplyEnhancementsPost(int offset) {
+	// WORKAROUND: Dr Fred's first reaction line about Hoagie's and Laverne's
+	// units after receiving a new diamond is unused because of missing
+	// wait.waitForMessage() calls. We always simulate this opcode when
+	// triggering Dr Fred's lines in this part of the script, since there is
+	// no stable offset for all the floppy, CD and translated versions, and
+	// no easy way to only target the impacted lines.
+	if (_game.id == GID_TENTACLE && currentScriptSlotIs(9)
+		&& vm.localvar[_currentScript][0] == 216 && _actorToPrintStrFor == 4 && enhancementEnabled(kEnhRestoredContent)) {
+		_forcedWaitForMessage = true;
+		_scriptPointer--;
+
+		return true;
+	}
+
+	// WORKAROUND for bug #1452: "DIG: Missing subtitles when talking to Brink"
+	// Original script does not have wait.waitForMessage() after several messages:
+	//
+	// [011A] (5D)   if (getActorCostume(VAR_EGO) == 1) {
+	// [0126] (BA)     talkActor("/STOP.008/Low out.",3)
+	// [013D] (A9)     wait.waitForMessage()
+	// [013F] (5D)   } else if (var227 == 0) {
+	// [014C] (BA)     talkActor("/STOP.009/Never mind.",3)
+	// [0166] (73)   } else {
+	//
+	// Here we simulate that opcode.
+	if (_game.id == GID_DIG && currentScriptSlotIs(88) && enhancementEnabled(kEnhRestoredContent)) {
+		if (offset == 0x158 || offset == 0x214 || offset == 0x231 || offset == 0x278) {
+			_forcedWaitForMessage = true;
+			_scriptPointer--;
+
+			return true;
+		}
+	}
+
+	// WORKAROUND bug #4410: Restore a missing subtitle when Low is inside the
+	// tomb and he finds the purpose of the crypt ("/TOMB.022/Now that I know
+	// what I'm looking for"...). Also happens in the original interpreters.
+	// We used to do this in actorTalk(), but then Low's proper walking
+	// animation was lost and he would just glide over the floor. Having him
+	// wait before he moves is less disturbing, since that's something he
+	// already does in the game.
+	if (_game.id == GID_DIG && _roomResource == 58 && currentScriptSlotIs(402)
+		&& _actorToPrintStrFor == 3 && vm.localvar[_currentScript][0] == 0
+		&& readVar(ROOM_VAL(94)) && readVar(ROOM_VAL(78)) && !readVar(ROOM_VAL(97))
+		&& _scummVars[269] == 3 && getState(388) == 2 && enhancementEnabled(kEnhRestoredContent)) {
+		_forcedWaitForMessage = true;
+		_scriptPointer--;
+
+		return true;
+	}
+
+	return false;
+}
 
 void ScummEngine_v6::o6_animateActorApplyEnhancements(int &act, int &anim) {
 	// WORKAROUND bug #15947: In the Human Show, with Laverne, the smiling
