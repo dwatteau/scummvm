@@ -405,7 +405,7 @@ OSX_STATIC_LIBS += -liconv \
 
 ifneq ($(BACKEND), iphone)
 ifneq ($(BACKEND), ios7)
-OSX_STATIC_LIBS += -lreadline -framework AudioUnit
+OSX_STATIC_LIBS += -lreadline
 endif
 endif
 endif
@@ -468,7 +468,7 @@ endif
 # PowerPC machine.
 scummvm-static: $(DETECT_OBJS) $(OBJS)
 	+$(LD) $(LDFLAGS) -force_cpusubtype_ALL -o scummvm-static $(DETECT_OBJS) $(OBJS) \
-		-framework CoreMIDI \
+		-framework CoreMIDI -framework AudioUnit \
 		$(OSX_STATIC_LIBS) \
 		$(OSX_ZLIB)
 
