@@ -72,12 +72,15 @@
 @interface BrowserDialogPresenter : NSObject {
 @public
 	NSURL *_url;
+	BOOL _isDirBrowser;
+	CFStringRef _title;
+	CFStringRef _prompt;
 @private
 	NSOpenPanel *_panel;
 }
 - (id) init;
 - (void) dealloc;
-- (void) showOpenPanel: (NSOpenPanel*) panel;
+- (void) showOpenPanel;
 - (IBAction) showHiddenFiles : (id) sender;
 @end
 
@@ -85,20 +88,42 @@
 
 - (id) init {
 	self = [super init];
-	_url = 0;
-	_panel = 0;
+	_url = nil;
+	_isDirBrowser = NO;
+	_title = nullptr;
+	_prompt = nullptr;
+	_panel = nil;
 	return self;
 }
 
 - (void) dealloc {
 	[_url release];
+
+	if (_title)
+		CFRelease(_title);
+
+	if (_prompt)
+		CFRelease(_prompt);
+
 	[super dealloc];
 }
 
-- (void) showOpenPanel: (NSOpenPanel*) panel {
+- (void) showOpenPanel {
+	NSOpenPanel *panel = [NSOpenPanel openPanel];
 	_panel = panel;
 
-	NSButton *showHiddenFilesButton = 0;
+	[panel setCanChooseFiles: !_isDirBrowser];
+	[panel setCanChooseDirectories: _isDirBrowser];
+	if (_isDirBrowser)
+		[panel setTreatsFilePackagesAsDirectories:YES];
+
+	if (_title)
+		[panel setTitle:(NSString *)_title];
+
+	if (_prompt)
+		[panel setPrompt:(NSString *)_prompt];
+
+	NSButton *showHiddenFilesButton = nil;
 	// note: still doing some respondsToSelector tests, because on Tiger/Leopard
 	// the API was undocumented.
 	if ([panel respondsToSelector:@selector(showsHiddenFiles)] && [panel respondsToSelector:@selector(setShowsHiddenFiles:)]) {
@@ -136,7 +161,7 @@
 	}
 
 	[showHiddenFilesButton release];
-	_panel = 0;
+	_panel = nil;
 }
 
 - (IBAction) showHiddenFiles : (id) sender {
@@ -169,17 +194,11 @@ Common::DialogManager::DialogResult MacOSXDialogManager::showFileBrowser(const C
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSWindow *keyWindow = [[NSApplication sharedApplication] keyWindow];
 
-
-	NSOpenPanel *panel = [NSOpenPanel openPanel];
-	[panel setCanChooseFiles:!isDirBrowser];
-	[panel setCanChooseDirectories:isDirBrowser];
-	if (isDirBrowser)
-		[panel setTreatsFilePackagesAsDirectories:true];
-	[panel setTitle:(NSString *)titleRef];
-	[panel setPrompt:(NSString *)chooseRef];
-
-	BrowserDialogPresenter* presenter = [[BrowserDialogPresenter alloc] init];
-	[presenter performSelectorOnMainThread:@selector(showOpenPanel:) withObject:panel waitUntilDone:YES];
+	BrowserDialogPresenter *presenter = [[BrowserDialogPresenter alloc] init];
+	presenter->_isDirBrowser = isDirBrowser;
+	presenter->_title = (CFStringRef)CFRetain(titleRef);
+	presenter->_prompt = (CFStringRef)CFRetain(chooseRef);
+	[presenter performSelectorOnMainThread:@selector(showOpenPanel) withObject:nil waitUntilDone:YES];
 	if (presenter->_url) {
 		Common::Path filename([[presenter->_url path] UTF8String]);
 		choice = Common::FSNode(filename);
