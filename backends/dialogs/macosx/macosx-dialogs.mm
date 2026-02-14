@@ -109,6 +109,7 @@
 }
 
 - (void) showOpenPanel {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSOpenPanel *panel = [NSOpenPanel openPanel];
 	_panel = panel;
 
@@ -161,6 +162,7 @@
 	}
 
 	[showHiddenFilesButton release];
+	[pool release];
 	_panel = nil;
 }
 
