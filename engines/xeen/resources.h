@@ -479,113 +479,124 @@ public:
 	const char *CLOUDS_MONSTERS[91];
 	const char *CLOUDS_SPELLS[77];
 
-	struct {
+	struct DialogsCharInfoKeys {
+		int KEY_ITEM;
+		int KEY_QUICK;
+		int KEY_EXCHANGE;
+		int KEY_ESCAPE;
+	};
 
-		struct {
-			int KEY_ITEM;
-			int KEY_QUICK;
-			int KEY_EXCHANGE;
-			int KEY_ESCAPE;
-		} DialogsCharInfo;
+	struct DialogsControlPanelKeys {
+		int KEY_FXON;
+		int KEY_MUSICON;
+		int KEY_LOAD;
+		int KEY_SAVE;
+		int KEY_QUIT;
+		int KEY_MRWIZARD;
+	};
 
-		struct {
-			int KEY_FXON;
-			int KEY_MUSICON;
-			int KEY_LOAD;
-			int KEY_SAVE;
-			int KEY_QUIT;
-			int KEY_MRWIZARD;
-		} DialogsControlPanel;
+	struct DialogsCreateCharKeys {
+		int KEY_ROLL;
+		int KEY_CREATE;
+		int KEY_MGT;
+		int KEY_INT;
+		int KEY_PER;
+		int KEY_END;
+		int KEY_SPD;
+		int KEY_ACY;
+		int KEY_LCK;
+	};
 
-		struct {
-			int KEY_ROLL;
-			int KEY_CREATE;
-			int KEY_MGT;
-			int KEY_INT;
-			int KEY_PER;
-			int KEY_END;
-			int KEY_SPD;
-			int KEY_ACY;
-			int KEY_LCK;
-		} DialogsCreateChar;
+	struct DialogsDifficultyKeys {
+		int KEY_ADVENTURER;
+		int KEY_WARRIOR;
+	};
 
-		struct {
-			int KEY_ADVENTURER;
-			int KEY_WARRIOR;
-		} DialogsDifficulty;
+	struct DialogsItemsKeys {
+		int KEY_WEAPONS;
+		int KEY_ARMOR;
+		int KEY_ACCESSORY;
+		int KEY_MISC;
+		int KEY_ENCHANT;
+		int KEY_USE;
+		int KEY_BUY;
+		int KEY_SELL;
+		int KEY_IDENTIFY;
+		int KEY_FIX;
+		int KEY_EQUIP;
+		int KEY_REM;
+		int KEY_DISC;
+		int KEY_QUEST;
+		int KEY_RECHRG;
+		int KEY_GOLD;
+	};
 
-		struct {
-			int KEY_WEAPONS;
-			int KEY_ARMOR;
-			int KEY_ACCESSORY;
-			int KEY_MISC;
-			int KEY_ENCHANT;
-			int KEY_USE;
-			int KEY_BUY;
-			int KEY_SELL;
-			int KEY_IDENTIFY;
-			int KEY_FIX;
-			int KEY_EQUIP;
-			int KEY_REM;
-			int KEY_DISC;
-			int KEY_QUEST;
-			int KEY_RECHRG;
-			int KEY_GOLD;
-		} DialogsItems;
+	struct DialogsPartyKeys {
+		int KEY_DELETE;
+		int KEY_REMOVE;
+		int KEY_CREATE;
+		int KEY_EXIT;
+	};
 
-		struct {
-			int KEY_DELETE;
-			int KEY_REMOVE;
-			int KEY_CREATE;
-			int KEY_EXIT;
-		} DialogsParty;
+	struct DialogsQuestsKeys {
+		int KEY_QUEST_ITEMS;
+		int KEY_CURRENT_QUESTS;
+		int KEY_AUTO_NOTES;
+	};
 
-		struct {
-			int KEY_QUEST_ITEMS;
-			int KEY_CURRENT_QUESTS;
-			int KEY_AUTO_NOTES;
-		} DialogsQuests;
+	struct DialogsQuickFightKeys {
+		int KEY_NEXT;
+	};
 
-		struct {
-			int KEY_NEXT;
-		} DialogsQuickFight;
+	struct DialogsSpellsKeys {
+		int KEY_CAST;
+		int KEY_NEW;
+		int KEY_FIRE;
+		int KEY_ELEC;
+		int KEY_COLD;
+		int KEY_ACID;
+		int KEY_SET;
+		int KEY_RETURN;
+	};
 
-		struct {
-			int KEY_CAST;
-			int KEY_NEW;
-			int KEY_FIRE;
-			int KEY_ELEC;
-			int KEY_COLD;
-			int KEY_ACID;
-			int KEY_SET;
-			int KEY_RETURN;
-		} DialogsSpells;
+	struct LocationsKeys {
+		int KEY_DEP;
+		int KEY_WITH;
+		int KEY_GOLD;
+		int KEY_GEMS;
+		int KEY_BROWSE;
+		int KEY_BUY_SPELLS;
+		int KEY_SPELL_INFO;
+		int KEY_SIGN_IN;
+		int KEY_DRINK;
+		int KEY_FOOD;
+		int KEY_TIP;
+		int KEY_RUMORS;
+		int KEY_HEAL;
+		int KEY_DONATION;
+		int KEY_UNCURSE;
+		int KEY_TRAIN;
+	};
 
-		struct {
-			int KEY_DEP;
-			int KEY_WITH;
-			int KEY_GOLD;
-			int KEY_GEMS;
-			int KEY_BROWSE;
-			int KEY_BUY_SPELLS;
-			int KEY_SPELL_INFO;
-			int KEY_SIGN_IN;
-			int KEY_DRINK;
-			int KEY_FOOD;
-			int KEY_TIP;
-			int KEY_RUMORS;
-			int KEY_HEAL;
-			int KEY_DONATION;
-			int KEY_UNCURSE;
-			int KEY_TRAIN;
-		} Locations;
+	struct CloudsOfXeenMenuKeys {
+		int KEY_START_NEW_GAME;
+		int KEY_LOAD_GAME;
+		int KEY_SHOW_CREDITS;
+		int KEY_VIEW_ENDGAME;
+	};
 
-		struct {
-			int KEY_START_NEW_GAME;
-			int KEY_LOAD_GAME;
-			int KEY_SHOW_CREDITS;
-			int KEY_VIEW_ENDGAME;
-		} CloudsOfXeenMenu;
+	struct KeyConstants {
+		DialogsCharInfoKeys DialogsCharInfo;
+		DialogsControlPanelKeys DialogsControlPanel;
+		DialogsCreateCharKeys DialogsCreateChar;
+		DialogsDifficultyKeys DialogsDifficulty;
+		DialogsItemsKeys DialogsItems;
+		DialogsPartyKeys DialogsParty;
+		DialogsQuestsKeys DialogsQuests;
+		DialogsQuickFightKeys DialogsQuickFight;
+		DialogsSpellsKeys DialogsSpells;
+		LocationsKeys Locations;
+		CloudsOfXeenMenuKeys CloudsOfXeenMenu;
 	} KeyConstants;
 
 
