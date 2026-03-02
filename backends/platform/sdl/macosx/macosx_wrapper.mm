@@ -28,8 +28,6 @@
 
 #include <AppKit/NSPasteboard.h>
 #include <Foundation/NSArray.h>
-#include <Foundation/NSPathUtilities.h>
-#include <AvailabilityMacros.h>
 #include <CoreFoundation/CFString.h>
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
@@ -48,6 +46,15 @@ enum {
 	NSUTF32LittleEndianStringEncoding = 0x9c000100
 };
 #endif
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4
+#  include <sys/param.h> // MAXPATHLEN
+#  include <CoreServices/CoreServices.h>
+#  define USE_DEPRECATED_FSFINDFOLDER_API	1
+#else
+#  include <Foundation/NSPathUtilities.h>
+#endif
+
 #endif
 
 bool hasTextInClipboardMacOSX() {
@@ -99,6 +106,19 @@ bool setTextInClipboardMacOSX(const Common::U32String &text) {
 }
 
 Common::String getDesktopPathMacOSX() {
+#ifdef USE_DEPRECATED_FSFINDFOLDER_API
+	// NSDesktopDirectory was only introduced in OS X 10.4, so when targeting 10.3 or older,
+	// rely on older Carbon Core APIs (deprecated in OS X 10.8).
+	FSRef fsRef;
+	if (FSFindFolder(kUserDomain, kDesktopFolderType, kDontCreateFolder, &fsRef) != noErr)
+		return Common::String();
+
+	UInt8 path[MAXPATHLEN];
+	if (FSRefMakePath(&fsRef, path, (UInt32)sizeof(path)) != noErr)
+		return Common::String();
+
+	return Common::String((const char *)path);
+#else
 	// The recommended method is to use NSFileManager.
 	// NSUrl *url = [[[NSFileManager defaultManager] URLsForDirectory:NSDesktopDirectory inDomains:NSUserDomainMask] firstObject];
 	// However it is only available in OS X 10.6+. So use NSSearchPathForDirectoriesInDomains instead (available since OS X 10.0)
@@ -110,4 +130,5 @@ Common::String getDesktopPathMacOSX() {
 	if (path == nil)
 		return Common::String();
 	return Common::String([path cStringUsingEncoding:NSASCIIStringEncoding]);
+#endif
 }
