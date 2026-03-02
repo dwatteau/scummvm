@@ -2854,6 +2854,12 @@ EOF
 
 		# Version-specific quirks
 		if test -n "$_macos_min_version" ; then
+			# Before the 10.4 SDK, some symbols like strtoll() are hidden behind
+			# __STRICT_ANSI__
+			if test "$_macos_min_version" -lt 1040 ; then
+				append_var CXXFLAGS "-U__STRICT_ANSI__"
+			fi
+
 			# When building for MacOS X 10.5 or below we need to use the legacy icon
 			if test "$_macos_min_version" -lt 1060 ; then
 				add_line_to_config_mk 'MACOSX_USE_LEGACY_ICONS = 1'
