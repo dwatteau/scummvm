@@ -24,10 +24,10 @@
 
 namespace Prince {
 
-struct FlagDebug {
+static struct FlagDebug {
 	uint id;
 	char flagName[30];
-} static const flagNames[] = {
+} const flagNames[] = {
 	{ Flags::FLAGA1, "FLAGA1" },
 	{ Flags::FLAGA2, "FLAGA2" },
 	{ Flags::FLAGA3, "FLAGA3" },

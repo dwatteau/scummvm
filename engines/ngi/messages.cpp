@@ -56,10 +56,10 @@ ExCommand::ExCommand(int16 parentId, int messageKind, int messageNum, int x, int
 	_parId = 0;
 }
 
-struct exDesc {
+static struct exDesc {
 	byte num;
 	const char *name;
-} static const exTypes[] = {
+} const exTypes[] = {
 	{ 1,  "START_MOVEMENT" },
 	{ 5,  "SHOW" },
 	{ 17, "MESSAGE" },

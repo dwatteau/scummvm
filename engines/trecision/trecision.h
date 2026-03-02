@@ -329,7 +329,7 @@ public:
 	uint32 _pauseStartTime;
 };
 
-uint8 static const defActionLen[hLAST + 1] = {
+static uint8 const defActionLen[hLAST + 1] = {
 	/* STAND */ 1,
 	/* PARTE */ 1,
 	/* WALK  */ 10,

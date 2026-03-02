@@ -729,7 +729,7 @@ private:
 	Common::List<ObjectPtr<Material> > _materials;
 
 	// Highest vertex used in EMI
-	const static unsigned int MAX_LOCAL_ALPHA_VERTICES = 48;
+	static const unsigned int MAX_LOCAL_ALPHA_VERTICES = 48;
 	Common::Array<float> _localAlpha;
 	Common::Array<int> _localAlphaMode;
 };

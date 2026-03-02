@@ -35,7 +35,7 @@ const byte kCodeRect = 0x2e;
 const byte kCodeRects = 0x4f;
 const byte kCodeShortId = 0x50;
 
-const static char *kCodeTable[] = {"",                   //
+static const char *kCodeTable[] = {"",                   //
 								   "",                   // 0x01  (string)
 								   "",                   // 0x02  (short literal)
 								   " {\n",               // 0x03

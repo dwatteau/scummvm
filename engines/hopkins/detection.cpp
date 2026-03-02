@@ -64,7 +64,7 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 	AD_EXTRA_GUI_OPTIONS_TERMINATOR
 };
 
-const static char *directoryGlobs[] = {
+static const char *directoryGlobs[] = {
 	"voice",
 	"link",
 	0

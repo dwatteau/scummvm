@@ -70,12 +70,12 @@ enum {
 
 #define TRANS(t,a,d) {t,#t,a,d}
 
-struct {
+static struct {
 	TransitionType type;
 	const char *name;
 	TransitionAlgo algo;
 	TransitionDirection dir;
-} static const transProps[] = {
+} const transProps[] = {
 	TRANS(kTransNone, 					kTransAlgoWipe,		kTransDirNone),
 	TRANS(kTransWipeRight, 				kTransAlgoWipe,		kTransDirHorizontal),
 	TRANS(kTransWipeLeft,				kTransAlgoWipe,		kTransDirHorizontal),

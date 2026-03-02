@@ -214,7 +214,7 @@ struct TilePoint {
  * ============================================================================ */
 
 	//	A TilePoint defining a NULL location
-const extern StaticTilePoint Nowhere;
+extern const StaticTilePoint Nowhere;
 
 /* ============================================================================ *
    TileRegion: Specifies a rectangular region of tiles using min/max

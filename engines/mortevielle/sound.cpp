@@ -220,7 +220,7 @@ void SoundManager::litph(tablint &t, int typ, int tempo) {
 			i++;
 			if (_soundType == 1) {
 				debugC(5, kMortevielleSounds, "litph - duson");
-				const static int noiseAdr[] = {0,     17224,
+				static const int noiseAdr[] = {0,     17224,
 											   17224, 33676,
 											   33676, 51014,
 											   51014, 59396,
@@ -235,7 +235,7 @@ void SoundManager::litph(tablint &t, int typ, int tempo) {
 				}
 			} else { // 2
 				debugC(5, kMortevielleSounds, "litph - vadson");
-				const static int ambiantNoiseAdr[] = {0,     14020,
+				static const int ambiantNoiseAdr[] = {0,     14020,
 													  14020, 18994,
 													  18994, 19630,
 													  19630, 22258,
