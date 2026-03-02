@@ -139,6 +139,26 @@
 	#if !defined(__SYMBIAN32__)
 	#include <new>
 	#endif
+
+	// WORKAROUND for a bug in the OSX SDK, before Tiger, which sets
+	// HUGE_VAL simply to 1e500, leading to this compiler error:
+	//   error: floating constant exceeds range of 'double'
+	// However, GCC has a __builtin_huge_val which returns the correct
+	// values, and that's how the SDK from Tiger fixed this, so we just
+	// use that. (The __extension__ fallback for older compilers is
+	// from Glibc.)
+	#if defined(MACOSX) && defined(__GNUC__)
+		#include <AvailabilityMacros.h>
+		#if MAC_OS_X_VERSION_MAX_ALLOWED < 1040
+			#undef HUGE_VAL
+			#if GCC_ATLEAST(3, 3)
+				#define HUGE_VAL (__builtin_huge_val())
+			#else
+				#define HUGE_VAL (__extension__ 0x1.0p2047)
+			#endif
+		#endif
+	#endif
+
 #endif
 
 #ifndef STATIC_ASSERT

@@ -22,6 +22,7 @@
 
 #include "cryomni3d/omni3d.h"
 
+#include "common/scummsys.h"
 #include "common/rect.h"
 
 namespace CryOmni3D {
