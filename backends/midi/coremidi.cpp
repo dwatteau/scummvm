@@ -34,9 +34,15 @@
 #include "audio/musicplugin.h"
 #include "audio/mpu401.h"
 
+#include <AvailabilityMacros.h>
 #include <CoreMIDI/CoreMIDI.h>
 
-
+// kMIDIPropertyDisplayName was introduced in the 10.4 SDK.  So, when targeting
+// OSX 10.3 or older, replace it with kMIDIPropertyName, although it's not quite
+// the same thing...
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1040
+#define kMIDIPropertyDisplayName	kMIDIPropertyName
+#endif
 
 /*
 For information on how to unify the CoreMidi and MusicDevice code:
@@ -248,8 +254,8 @@ bool CoreMIDIMusicPlugin::getDeviceName(ItemCount deviceIndex, Common::String &o
 		CFRelease(name);
 	}
 	// Rather than fail use a default name
-	warning("Failed to get name for CoreMIDi device %lu", deviceIndex);
-	outName = Common::String::format("Unknown Device %lu", deviceIndex);
+	warning("Failed to get name for CoreMIDI device %lu", (unsigned long)deviceIndex);
+	outName = Common::String::format("Unknown Device %lu", (unsigned long)deviceIndex);
 	return true;
 }
 
