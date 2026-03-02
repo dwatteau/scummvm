@@ -36,7 +36,7 @@ private:
 	// Allocate enough for 32bpp formats
 	uint32 lookup[17];
 	template<typename Pixel>
-	void scaleIntern(const uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr,
+	void scaleInternTpl(const uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr,
 			uint32 dstPitch, int width, int height, int x, int y);
 };
 

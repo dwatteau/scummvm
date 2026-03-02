@@ -51,9 +51,9 @@ DotMatrixScaler::DotMatrixScaler(const Graphics::PixelFormat &format) : Scaler(f
 void DotMatrixScaler::scaleIntern(const uint8 *srcPtr, uint32 srcPitch,
 							uint8 *dstPtr, uint32 dstPitch, int width, int height, int x, int y) {
 	if (_format.bytesPerPixel == 2) {
-		scaleIntern<uint16>(srcPtr, srcPitch, dstPtr, dstPitch, width, height, x, y);
+		scaleInternTpl<uint16>(srcPtr, srcPitch, dstPtr, dstPitch, width, height, x, y);
 	} else {
-		scaleIntern<uint32>(srcPtr, srcPitch, dstPtr, dstPitch, width, height, x, y);
+		scaleInternTpl<uint32>(srcPtr, srcPitch, dstPtr, dstPitch, width, height, x, y);
 	}
 }
 
@@ -71,7 +71,7 @@ static inline Pixel DOT(const Pixel *dotmatrix, Pixel c, int j, int i) {
 }
 
 template<typename Pixel>
-void DotMatrixScaler::scaleIntern(const uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch,
+void DotMatrixScaler::scaleInternTpl(const uint8 *srcPtr, uint32 srcPitch, uint8 *dstPtr, uint32 dstPitch,
 					int width, int height, int x, int y) {
 
 	const Pixel *dotmatrix = (Pixel *)lookup;
