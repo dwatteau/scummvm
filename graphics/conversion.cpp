@@ -402,22 +402,22 @@ template <typename ColorMask, typename Size>
 Size scaleBlitBilinearInterpolate(Size c01, Size c00, Size c11, Size c10, int ex, int ey,
 								  const Graphics::PixelFormat &fmt) {
 	byte c01_a, c01_r, c01_g, c01_b;
-	fmt.colorToARGBT<ColorMask>(c01, c01_a, c01_r, c01_g, c01_b);
+	fmt.template colorToARGBT<ColorMask>(c01, c01_a, c01_r, c01_g, c01_b);
 
 	byte c00_a, c00_r, c00_g, c00_b;
-	fmt.colorToARGBT<ColorMask>(c00, c00_a, c00_r, c00_g, c00_b);
+	fmt.template colorToARGBT<ColorMask>(c00, c00_a, c00_r, c00_g, c00_b);
 
 	byte c11_a, c11_r, c11_g, c11_b;
-	fmt.colorToARGBT<ColorMask>(c11, c11_a, c11_r, c11_g, c11_b);
+	fmt.template colorToARGBT<ColorMask>(c11, c11_a, c11_r, c11_g, c11_b);
 
 	byte c10_a, c10_r, c10_g, c10_b;
-	fmt.colorToARGBT<ColorMask>(c10, c10_a, c10_r, c10_g, c10_b);
+	fmt.template colorToARGBT<ColorMask>(c10, c10_a, c10_r, c10_g, c10_b);
 
 	byte dp_a = scaleBlitBilinearInterpolate(c01_a, c00_a, c11_a, c10_a, ex, ey);
 	byte dp_r = scaleBlitBilinearInterpolate(c01_r, c00_r, c11_r, c10_r, ex, ey);
 	byte dp_g = scaleBlitBilinearInterpolate(c01_g, c00_g, c11_g, c10_g, ex, ey);
 	byte dp_b = scaleBlitBilinearInterpolate(c01_b, c00_b, c11_b, c10_b, ex, ey);
-	return fmt.ARGBToColorT<ColorMask>(dp_a, dp_r, dp_g, dp_b);
+	return fmt.template ARGBToColorT<ColorMask>(dp_a, dp_r, dp_g, dp_b);
 }
 
 template <typename ColorMask, typename Size, bool flipx, bool flipy> // TODO: See mirroring comment in RenderTicket ctor
