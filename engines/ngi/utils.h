@@ -128,7 +128,7 @@ public:
 
 		for (int i = 0; i < count; i++) {
 			debugC(9, kDebugLoading, "ObList::[%d]", i);
-			T *t = file.readClass<T>();
+			T *t = file.template readClass<T>();
 
 			this->push_back(t);
 		}
