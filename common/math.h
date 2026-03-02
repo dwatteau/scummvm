@@ -95,6 +95,7 @@ static const char LogTable256[256] = {
 	-1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
 	LT(4), LT(5), LT(5), LT(6), LT(6), LT(6), LT(6),
 	LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7)
+#undef LT
 };
 
 inline int intLog2(uint32 v) {
