@@ -2204,6 +2204,19 @@ if test "$have_gcc" = yes ; then
 		append_var CXXFLAGS "-Wconversion"
 	fi;
 	append_var CXXFLAGS "-fno-operator-names"
+
+	if test "$_cxx_major" -eq 4 && test "$_cxx_minor" -ge 2 && test "$_cxx_minor" -le 4 ; then
+		# GCC 4.2 miscompiles audio/decoders/voc.cpp and common/stream.cpp, at least
+		# on ppc32 (with the underlying bug known to happen on ARM too), unless disabling
+		# -funit-at-a-time. This broken behavior may have existed until GCC 4.5.
+		append_var CXXFLAGS "-fno-unit-at-a-time"
+
+		# Also, the GCC 4.2.x branch was known to have various -ftree-vrp bugs (e.g. GCC
+		# Bugzilla#32575, GCC Bugzilla#32544, OpenBSD patches for GCC 4.2.1...)
+		if test "$_cxx_minor" -eq 2 ; then
+			append_var CXXFLAGS "-fno-tree-vrp"
+		fi
+	fi
 elif test "$have_icc" = yes ; then
 	add_line_to_config_mk 'CXX_UPDATE_DEP_FLAG = -MMD -MF "$(*D)/$(DEPDIR)/$(*F).d" -MQ "$@" -MP'
 fi;
