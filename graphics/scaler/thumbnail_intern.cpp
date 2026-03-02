@@ -135,13 +135,13 @@ static void scaleThumbnail(Graphics::Surface &in, Graphics::Surface &out) {
 
 				// Look up colors at the points
 				uint8 p1R, p1G, p1B;
-				in.format.colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x1, y1)), p1R, p1G, p1B);
+				in.format.template colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x1, y1)), p1R, p1G, p1B);
 				uint8 p2R, p2G, p2B;
-				in.format.colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x2, y1)), p2R, p2G, p2B);
+				in.format.template colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x2, y1)), p2R, p2G, p2B);
 				uint8 p3R, p3G, p3B;
-				in.format.colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x1, y2)), p3R, p3G, p3B);
+				in.format.template colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x1, y2)), p3R, p3G, p3B);
 				uint8 p4R, p4G, p4B;
-				in.format.colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x2, y2)), p4R, p4G, p4B);
+				in.format.template colorToRGBT<ColorMask>(READ_UINT16(in.getBasePtr(x2, y2)), p4R, p4G, p4B);
 
 				const float xDiff = xFrac - x1;
 				const float yDiff = yFrac - y1;
@@ -150,7 +150,7 @@ static void scaleThumbnail(Graphics::Surface &in, Graphics::Surface &out) {
 				uint8 pG = (uint8)((1 - yDiff) * ((1 - xDiff) * p1G + xDiff * p2G) + yDiff * ((1 - xDiff) * p3G + xDiff * p4G));
 				uint8 pB = (uint8)((1 - yDiff) * ((1 - xDiff) * p1B + xDiff * p2B) + yDiff * ((1 - xDiff) * p3B + xDiff * p4B));
 
-				WRITE_UINT16(dst, out.format.RGBToColorT<ColorMask>(pR, pG, pB));
+				WRITE_UINT16(dst, out.format.template RGBToColorT<ColorMask>(pR, pG, pB));
 				dst += 2;
 			}
 
