@@ -43,8 +43,9 @@
 #include "common/fs.h"
 #include "common/translation.h"
 
-#include "ApplicationServices/ApplicationServices.h"	// for LSOpenFSRef
-#include "CoreFoundation/CoreFoundation.h"	// for CF* stuff
+#include <AvailabilityMacros.h>
+#include <ApplicationServices/ApplicationServices.h>	// for LSOpenFSRef
+#include <CoreFoundation/CoreFoundation.h>	// for CF* stuff
 
 // For querying number of MIDI devices
 #include <pthread.h>
@@ -115,6 +116,16 @@ void OSystem_MacOSX::initBackend() {
 
 #ifdef USE_OPENGL
 OSystem_SDL::GraphicsManagerType OSystem_MacOSX::getDefaultGraphicsManager() const {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1050
+	// WORKAROUND: OSX 10.4 and older support very old GPUs, such as the
+	// ATI Rage 128, which have deep problems when using OpenGL in fullscreen
+	// mode. Keeping SDL as the default graphics manager thus seems safer, for
+	// such systems.
+	SInt32 version;
+	if (Gestalt(gestaltSystemVersion, &version) == noErr && version < 0x1050)
+		return GraphicsManagerSDL;
+#endif
+
 	return GraphicsManagerOpenGL;
 }
 #endif
