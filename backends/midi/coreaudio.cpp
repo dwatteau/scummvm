@@ -149,7 +149,7 @@ int MidiDriver_CORE::open() {
 	// TODO: Make this customizable via a config key?
 	{
 		UInt32 usesReverb = 0;
-		AudioUnitSetProperty(_synth, kMusicDeviceProperty_UsesInternalReverb,
+		AudioUnitSetProperty(_synth, kAudioUnitProperty_UsesInternalReverb,
 			kAudioUnitScope_Global, 0, &usesReverb, sizeof(usesReverb));
 	}
 #endif
