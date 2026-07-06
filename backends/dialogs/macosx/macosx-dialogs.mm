@@ -106,7 +106,7 @@
 		[showHiddenFilesButton setButtonType:NSButtonTypeSwitch];
 
 		CFStringRef hiddenFilesString = CFStringCreateWithCString(0, _("Show hidden files").encode().c_str(), kCFStringEncodingUTF8);
-		[showHiddenFilesButton setTitle:(NSString*)hiddenFilesString];
+		[showHiddenFilesButton setTitle:(NSString *)const_cast<__CFString *>(hiddenFilesString)];
 		CFRelease(hiddenFilesString);
 
 		[showHiddenFilesButton sizeToFit];
@@ -175,8 +175,8 @@ Common::DialogManager::DialogResult MacOSXDialogManager::showFileBrowser(const C
 	[panel setCanChooseDirectories:isDirBrowser];
 	if (isDirBrowser)
 		[panel setTreatsFilePackagesAsDirectories:true];
-	[panel setTitle:(NSString *)titleRef];
-	[panel setPrompt:(NSString *)chooseRef];
+	[panel setTitle:(NSString *)const_cast<__CFString *>(titleRef)];
+	[panel setPrompt:(NSString *)const_cast<__CFString *>(chooseRef)];
 
 	BrowserDialogPresenter* presenter = [[BrowserDialogPresenter alloc] init];
 	[presenter performSelectorOnMainThread:@selector(showOpenPanel:) withObject:panel waitUntilDone:YES];

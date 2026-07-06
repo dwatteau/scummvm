@@ -135,7 +135,7 @@ void MacOSXTaskbarManager::setOverlayIcon(const Common::String &name, const Comm
 	initOverlayIconView();
 
 	CFStringRef imageFile = CFStringCreateWithCString(0, path.toString(Common::Path::kNativeSeparator).c_str(), kCFStringEncodingASCII);
-	NSImage *image = [[NSImage alloc] initWithContentsOfFile:(NSString *)imageFile];
+	NSImage *image = [[NSImage alloc] initWithContentsOfFile:(NSString *)const_cast<__CFString *>(imageFile)];
 	[_overlayIconView setImage:image];
 	[image release];
 	CFRelease(imageFile);
@@ -231,14 +231,14 @@ void MacOSXTaskbarManager::addRecent(const Common::String &name, const Common::S
 
 	// First build the dictionary for this game.
 	NSMutableDictionary *dict = [[NSMutableDictionary  alloc] init];
-	[dict setObject:(NSString *)gameName forKey:@"game"];
-	[dict setObject:(NSString *)desc forKey:@"description"];
+	[dict setObject:(NSString *)const_cast<__CFString *>(gameName) forKey:@"game"];
+	[dict setObject:(NSString *)const_cast<__CFString *>(desc) forKey:@"description"];
 
 	// Icon
 	Common::Path iconPath = getIconPath(name, ".png");
 	if (!iconPath.empty()) {
 		CFStringRef icon = CFStringCreateWithCString(0, iconPath.toString(Common::Path::kNativeSeparator).c_str(), kCFStringEncodingASCII);
-		[dict setObject:(NSString *)icon forKey:@"icon"];
+		[dict setObject:(NSString *)const_cast<__CFString *>(icon) forKey:@"icon"];
 		CFRelease(icon);
 	}
 
@@ -257,7 +257,7 @@ void MacOSXTaskbarManager::addRecent(const Common::String &name, const Common::S
 			if (oldDict == nil)
 				continue;
 			NSString *oldGame = [oldDict objectForKey:@"game"];
-			if (oldGame != nil && [oldGame isEqualToString:(NSString*)gameName]) {
+			if (oldGame != nil && [oldGame isEqualToString:(NSString *)const_cast<__CFString *>(gameName)]) {
 				[newArray removeObjectAtIndex:i];
 				break;
 			}

@@ -77,7 +77,7 @@ Common::String getAppSupportPathMacOSX() {
 }
 
 Common::String getMacBundleName() {
-	NSString *appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:(id)kCFBundleNameKey];
+	NSString *appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:(id)const_cast<__CFString *>(kCFBundleNameKey)];
 	if (!appName)
 		return Common::String("ScummVM");
 	return Common::String([appName UTF8String]);
