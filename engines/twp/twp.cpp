@@ -1276,6 +1276,7 @@ Common::Error TwpEngine::run() {
 				break;
 			case Common::EVENT_LBUTTONDOWN:
 				_cursor.leftDown = true;
+				_cursor.leftUpDeferred = false;
 				if ((_time - _cursor.leftDownTime) < 1.0f) {
 					_cursor.doubleClick = true;
 				} else {
@@ -1283,15 +1284,24 @@ Common::Error TwpEngine::run() {
 				}
 				break;
 			case Common::EVENT_LBUTTONUP:
-				_cursor.leftDown = false;
+				if (_cursor.leftDown && !_cursor.oldLeftDown) {
+					_cursor.leftUpDeferred = true;
+				} else {
+					_cursor.leftDown = false;
+				}
 				_cursor.leftDownTime = _time;
 				break;
 			case Common::EVENT_RBUTTONDOWN:
 				_cursor.doubleClick = false;
 				_cursor.rightDown = true;
+				_cursor.rightUpDeferred = false;
 				break;
 			case Common::EVENT_RBUTTONUP:
-				_cursor.rightDown = false;
+				if (_cursor.rightDown && !_cursor.oldRightDown) {
+					_cursor.rightUpDeferred = true;
+				} else {
+					_cursor.rightDown = false;
+				}
 				break;
 			case Common::EVENT_WHEELDOWN:
 				if (_actor) {

@@ -224,6 +224,10 @@ public:
 		bool oldLeftDown = false;
 		bool leftDown = false;
 		int leftDownTime = 0;
+		// The following is necessary for proper support of tap-to-click
+		// trackpads (bug #15737).
+		bool leftUpDeferred = false;
+		bool rightUpDeferred = false;
 		bool oldRightDown = false;
 		bool rightDown = false;
 		int doubleClick = false;
@@ -233,6 +237,14 @@ public:
 		bool holdDown = false;
 
 		void update() {
+			if (leftUpDeferred) {
+				leftDown = false;
+				leftUpDeferred = false;
+			}
+			if (rightUpDeferred) {
+				rightDown = false;
+				rightUpDeferred = false;
+			}
 			oldLeftDown = leftDown;
 			oldRightDown = rightDown;
 		}
