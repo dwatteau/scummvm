@@ -355,6 +355,7 @@ void TwpEngine::clickedAt(const Math::Vector2d &scrPos) {
 		}
 
 		if (_cursor.isLeftDown()) {
+			warning("TAPDBG: click CONSUMED by update() millis=%u frame=%d", _system->getMillis(), _frameCounter);
 			// button left: execute selected verb
 			bool handled = clickedAtHandled(roomPos);
 			if (!handled && obj && (!_hud->_active || _uiInv.isOver())) {
@@ -1275,6 +1276,7 @@ Common::Error TwpEngine::run() {
 				_cursor.pos = Math::Vector2d(e.mouse.x, e.mouse.y);
 				break;
 			case Common::EVENT_LBUTTONDOWN:
+				warning("TAPDBG: LBUTTONDOWN millis=%u frame=%d", _system->getMillis(), _frameCounter);
 				_cursor.leftDown = true;
 				_cursor.leftUpDeferred = false;
 				if ((_time - _cursor.leftDownTime) < 1.0f) {
@@ -1285,8 +1287,10 @@ Common::Error TwpEngine::run() {
 				break;
 			case Common::EVENT_LBUTTONUP:
 				if (_cursor.leftDown && !_cursor.oldLeftDown) {
+					warning("TAPDBG: LBUTTONUP   millis=%u frame=%d -> DEFERRED", _system->getMillis(), _frameCounter);
 					_cursor.leftUpDeferred = true;
 				} else {
+					warning("TAPDBG: LBUTTONUP   millis=%u frame=%d -> applied", _system->getMillis(), _frameCounter);
 					_cursor.leftDown = false;
 				}
 				_cursor.leftDownTime = _time;
