@@ -283,8 +283,20 @@ GfxBase *GrimEngine::createRenderer(int screenW, int screenH) {
 	// For Grim Fandango, OpenGL renderer without shaders is preferred if available
 	if (desiredRendererType == Graphics::kRendererTypeDefault &&
 		(availableRendererTypes & Graphics::kRendererTypeOpenGL) &&
-	    getGameType() == GType_GRIM) {
+		getGameType() == GType_GRIM) {
+		// HACK: Bug #15531: On Apple silicon, the OpenGL-on-Metal driver
+		// has issues when using GL_SPOT_CUTOFF in glLightf() calls (as used
+		// in GfxOpenGL::setupLight()), leaving some characters fully unlit in
+		// some parts of some rooms, such as the first one in the demo.
+		//
+		// So, OpenGL _with_ shaders remains preferred on this setup (Apple
+		// has stopped caring about its OpenGL emulation/drivers for a very
+		// long time, anyway.)
+		//
+		// TODO: check status on iOS?
+#if !(defined(MACOSX) && defined(__aarch64__))
 		availableRendererTypes &= ~Graphics::kRendererTypeOpenGLShaders;
+#endif
 	}
 
 	// Not supported yet.
