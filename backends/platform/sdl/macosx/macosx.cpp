@@ -96,6 +96,7 @@ void OSystem_MacOSX::init() {
 	// the subsequent calls are instantaneous
 	pthread_t thread;
 	pthread_create(&thread, NULL, coreMIDIthread, NULL);
+	pthread_detach(thread);
 
 	// Invoke parent implementation of this method
 	OSystem_POSIX::init();
