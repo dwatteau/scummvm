@@ -29,6 +29,7 @@
 
 #include "common/config-manager.h"
 #include "common/algorithm.h"
+#include "common/textconsole.h"
 #include "common/translation.h"
 
 #include <AvailabilityMacros.h>
@@ -65,9 +66,16 @@
       #define NSControlStateValueOn NSOnState
     #endif
 
+    #ifndef NSAppKitVersionNumber10_6
+      #define NSAppKitVersionNumber10_6   1038
+    #endif
+
+    #ifndef NSAppKitVersionNumber10_7
+      #define NSAppKitVersionNumber10_7   1138
+    #endif
+
 #define NSButtonTypeSwitch NSSwitchButton
 #endif
-
 
 @interface BrowserDialogPresenter : NSObject {
 @public
@@ -179,6 +187,25 @@
 @end
 
 Common::DialogManager::DialogResult MacOSXDialogManager::showFileBrowser(const Common::U32String &title, Common::FSNode &choice, bool isDirBrowser) {
+	// HACK: Prevent the use of the native panel on "Sorbet Leopard" PPC
+	// systems, and fall back to ScummVM's own file browser when detecting
+	// this (unsupported, unofficial) OSX release, to prevent crashes.
+	// See Trac#16538.
+#if defined(__ppc__) || defined(__ppc64__)
+	// XXX: do a Snow Leopard x86 test, to see if it's also impacted?
+	// XXX: limit this to SDL > 1.2 define? (if it only happens with SDL2?)
+
+	// XXX: Tiger test (possibly 824.xx; TODO: confirm!)
+	// XXX: on Leopard 10.5.8:  "NSAppKitVersionNumber: 949.54"
+	warning("NSAppKitVersionNumber: %g", NSAppKitVersionNumber);
+
+	if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_6 &&
+	    NSAppKitVersionNumber < NSAppKitVersionNumber10_7) {
+		warning("Unsupported OSXPPC system with known bugs; not using system dialogs");
+		return kDialogError;
+	}
+#endif
+
 	DialogResult result = kDialogCancel;
 
 	// Get current encoding
