@@ -24,6 +24,7 @@
 
 //#define WIZ_DEBUG_BUFFERS
 
+#include "common/endian.h"
 #include "common/rect.h"
 
 namespace Scumm {
@@ -651,6 +652,12 @@ public:
 	bool _useWizClipRect = false;
 	bool _uses16BitColor = false;
 	int _wizActiveShadow = 0;
+
+	bool _wizDrawTargetIsOffscreen = false; // true while drawing into an offscreen (LE) WIZ buffer
+
+	WizRawPixel16 storeWizRawPixel16(WizRawPixel16 nativeValue) const {
+		return _wizDrawTargetIsOffscreen ? (WizRawPixel16)TO_LE_16(nativeValue) : nativeValue;
+	}
 
 	void deleteLocalPolygons();
 	void polygonLoad(const uint8 *polData);

@@ -605,7 +605,7 @@ void Wiz::trleFLIPForwardPixelCopy(WizRawPixel *dstPtr, const byte *srcPtr, int 
 
 	while (size-- > 0) {
 		if (_uses16BitColor) {
-			*buf16++ = (WizRawPixel16)convert8BppToRawPixel(*srcPtr++, conversionTable);
+			*buf16++ = storeWizRawPixel16((WizRawPixel16)convert8BppToRawPixel(*srcPtr++, conversionTable));
 		} else {
 			*buf8++ = (WizRawPixel8)convert8BppToRawPixel(*srcPtr++, conversionTable);
 		}
@@ -624,7 +624,7 @@ void Wiz::trleFLIPBackwardsPixelCopy(WizRawPixel *dstPtr, const byte *srcPtr, in
 
 	while (size-- > 0) {
 		if (_uses16BitColor) {
-			*buf16-- = (WizRawPixel16)convert8BppToRawPixel(*srcPtr++, conversionTable);
+			*buf16-- = storeWizRawPixel16((WizRawPixel16)convert8BppToRawPixel(*srcPtr++, conversionTable));
 		} else {
 			*buf8-- = (WizRawPixel8)convert8BppToRawPixel(*srcPtr++, conversionTable);
 		}
@@ -1852,12 +1852,14 @@ static void trleFLIPAltSourceForwardXBppToXBpp(Wiz *wiz, WizRawPixel *destPtr, c
 			srcPtr += runCount;
 		},
 		{
-			memcpy(destPtr, srcPtr, (runCount * sizeof(WizRawPixel)));
+			for (int i = 0; i < runCount; i++)
+				destPtr[i] = FROM_LE_16(srcPtr[i]);
 			destPtr += runCount;
 			srcPtr += runCount;
 		},
 		{
-			memcpy(destPtr, srcPtr, (runCount * sizeof(WizRawPixel)));
+			for (int i = 0; i < runCount; i++)
+				destPtr[i] = FROM_LE_16(srcPtr[i]);
 			destPtr += runCount;
 			srcPtr += runCount;
 		});
@@ -1881,12 +1883,14 @@ static void trleFLIPAltSourceBackwardXBppToXBpp(Wiz *wiz, WizRawPixel *destPtr, 
 		{
 			destPtr -= runCount;
 			srcPtr -= runCount;
-			memcpy(destPtr + 1, srcPtr + 1, (runCount * sizeof(WizRawPixel)));
+			for (int i = 1; i <= runCount; i++)
+				destPtr[i] = FROM_LE_16(srcPtr[i]);
 		},
 		{
 			destPtr -= runCount;
 			srcPtr -= runCount;
-			memcpy(destPtr + 1, srcPtr + 1, (runCount * sizeof(WizRawPixel)));
+			for (int i = 1; i <= runCount; i++)
+				destPtr[i] = FROM_LE_16(srcPtr[i]);
 		});
 }
 

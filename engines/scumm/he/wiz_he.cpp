@@ -408,11 +408,21 @@ WizPxShrdBuffer Wiz::drawAWizPrimEx(int globNum, int state, int x, int y, int z,
 			if (flags & kWRFRemap)
 				dataPtr = remapPtr + _vm->_resourceHeaderSize + 4;
 
+			// HACK:
+			// destPtr is either the native VirtScreen or a little-endian
+			// WIZ image's raw WIZD pixel buffer. Handling it here this
+			// way is a bit hackish, but the current endianess code in
+			// this area is fragile...
+			bool savedDrawTargetIsOffscreen = _wizDrawTargetIsOffscreen;
+			_wizDrawTargetIsOffscreen = (optionalBitmapOverride != nullptr);
+
 			trleFLIPDecompressImage(
 				destPtr(), srcData + _vm->_resourceHeaderSize, destWidth, destHeight,
 				x, y, srcWidth, srcHeight, &clipRect, flags, dataPtr,
 				optionalColorConversionTable,
 				optionalICmdPtr);
+
+			_wizDrawTargetIsOffscreen = savedDrawTargetIsOffscreen;
 		}
 
 	} else {
@@ -453,10 +463,17 @@ WizPxShrdBuffer Wiz::drawAWizPrimEx(int globNum, int state, int x, int y, int z,
 				}
 			}
 
+			// HACK:
+			// See previous `savedDrawTargetIsOffscreen` comment above.
+			bool savedDrawTargetIsOffscreen = _wizDrawTargetIsOffscreen;
+			_wizDrawTargetIsOffscreen = (optionalBitmapOverride != nullptr);
+
 			// Use the native transfer function...
 			pgDrawRawDataFormatImage(
 				destPtr(), (WizRawPixel *)(srcData + _vm->_resourceHeaderSize), destWidth, destHeight,
 				x, y, srcWidth, srcHeight, &clipRect, flags, dataPtr, transColorOverride);
+
+			_wizDrawTargetIsOffscreen = savedDrawTargetIsOffscreen;
 		}
 	}
 
